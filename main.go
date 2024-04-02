@@ -270,7 +270,7 @@ func top20Cmd() *ffcli.Command {
 				amt := addresses[addr]
 				table.Append([]string{
 					fmt.Sprint(i + 1),
-					addr,
+					fmt.Sprintf("[%[1]s](https://www.mintscan.io/cosmos/address/%[1]s)", addr),
 					knownAddrs[addr],
 					human(amt),
 					humanPercent(amt.ToDec().Quo(totalAmt.ToDec())),
