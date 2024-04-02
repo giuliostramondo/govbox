@@ -53,8 +53,12 @@ func humand(d sdk.Dec) string {
 	return h.Comma(d.Quo(M).RoundInt64())
 }
 
-func humanPercent(d sdk.Dec) string {
+func humanPercentI(d sdk.Dec) string {
 	return fmt.Sprintf("%d%%", d.Mul(sdk.NewDec(100)).RoundInt64())
+}
+
+func humanPercent(d sdk.Dec) string {
+	return fmt.Sprintf("%.2f %%", d.Mul(sdk.NewDec(100)).MustFloat64())
 }
 
 func parseAccounts(path string) ([]Account, error) {

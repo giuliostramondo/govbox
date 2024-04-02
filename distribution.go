@@ -8,7 +8,6 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
-	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/browser"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -244,10 +243,7 @@ func printAirdropsStats(chartMode bool, airdrops []airdrop) error {
 	}
 
 	printDistrib := func(d distrib) {
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-		table.SetCenterSeparator("|")
-		table.SetHeader([]string{"", "TOTAL", "DID NOT VOTE", "YES", "NO", "NOWITHVETO", "ABSTAIN", "NOT STAKED"})
+		table := newMarkdownTable("", "TOTAL", "DID NOT VOTE", "YES", "NO", "NOWITHVETO", "ABSTAIN", "NOT STAKED")
 		table.Append([]string{
 			"Distributed",
 			humand(d.supply),
@@ -262,12 +258,12 @@ func printAirdropsStats(chartMode bool, airdrops []airdrop) error {
 		table.Append([]string{
 			"Percentage over total",
 			"",
-			humanPercent(votePercs[govtypes.OptionEmpty]),
-			humanPercent(votePercs[govtypes.OptionYes]),
-			humanPercent(votePercs[govtypes.OptionNo]),
-			humanPercent(votePercs[govtypes.OptionNoWithVeto]),
-			humanPercent(votePercs[govtypes.OptionAbstain]),
-			humanPercent(d.unstaked.Quo(d.supply)),
+			humanPercentI(votePercs[govtypes.OptionEmpty]),
+			humanPercentI(votePercs[govtypes.OptionYes]),
+			humanPercentI(votePercs[govtypes.OptionNo]),
+			humanPercentI(votePercs[govtypes.OptionNoWithVeto]),
+			humanPercentI(votePercs[govtypes.OptionAbstain]),
+			humanPercentI(d.unstaked.Quo(d.supply)),
 		})
 		table.Render()
 		fmt.Println()

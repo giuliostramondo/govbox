@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	h "github.com/dustin/go-humanize"
-	"github.com/olekukonko/tablewriter"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -75,8 +73,7 @@ func printTallyResults(results map[govtypes.VoteOption]sdk.Dec, totalVotingPower
 	tallyResult := govtypes.NewTallyResultFromMap(results)
 
 	fmt.Println("--- TALLY RESULT ---")
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"", "Yes", "No", "NoWithVeto", "Abstain", "Total"})
+	table := newMarkdownTable("", "Yes", "No", "NoWithVeto", "Abstain", "Total")
 	appendTable := func(source string, t govtypes.TallyResult) {
 		total := t.Yes.Add(t.No).Add(t.Abstain).Add(t.NoWithVeto)
 		table.Append([]string{

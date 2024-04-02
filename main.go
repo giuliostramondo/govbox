@@ -23,7 +23,7 @@ func main() {
 		ShortHelp:  "Set of commands for GovGen proposals.",
 		Subcommands: []*ffcli.Command{
 			tallyCmd(), accountsCmd(), genesisCmd(),
-			autoStakingCmd(), distributionCmd(), topTenCmd(),
+			autoStakingCmd(), distributionCmd(), top20Cmd(),
 		},
 		Exec: func(ctx context.Context, args []string) error {
 			return flag.ErrHelp
@@ -223,13 +223,25 @@ func distributionCmd() *ffcli.Command {
 	return cmd
 }
 
-func topTenCmd() *ffcli.Command {
+func top20Cmd() *ffcli.Command {
 	return &ffcli.Command{
-		Name:       "topten",
-		ShortUsage: "govbox topten <path>",
+		Name:       "top20",
+		ShortUsage: "govbox top20 <path>",
 		ShortHelp:  "Prints the top richest addresses of <path>/airdrop.json",
 		Exec: func(ctx context.Context, args []string) error {
-			f, err := os.Open("data/prop848/airdrop.json")
+			var (
+				datapath   = args[0]
+				knownAddrs = map[string]string{
+					"cosmos14lultfckehtszvzw4ehu0apvsr77afvyhgqhwh": "Dokia",
+					"cosmos1p3ucd3ptpw902fluyjzhq3ffgq4ntddac9sa3s": "Binance?",
+					"cosmos1nm0rrq86ucezaf8uj35pq9fpwr5r82cl8sc7p5": "Kraken",
+					"cosmos1zr7aswwzskhav7w57vwpaqsafuh5uj7nv8a964": "SG1?",
+					"cosmos1f70nsqtq0wcd0kymq79ca2p0k5napnm6yqc94x": "ChorusOne?",
+					"cosmos1wlh0f94r6c4y5nwsqlxd2384jmxlljstame50p": "CosmosStation?",
+				}
+			)
+
+			f, err := os.Open(filepath.Join(datapath, "airdrop.json"))
 			if err != nil {
 				return err
 			}
@@ -239,18 +251,32 @@ func topTenCmd() *ffcli.Command {
 			if err != nil {
 				return err
 			}
-			adrs := maps.Keys(addresses)
-			sort.Slice(adrs, func(i, j int) bool {
-				return addresses[adrs[i]].GT(addresses[adrs[j]])
+			addrs := maps.Keys(addresses)
+			sort.Slice(addrs, func(i, j int) bool {
+				return addresses[addrs[i]].GT(addresses[addrs[j]])
 			})
-			for i := 0; i < 10; i++ {
-				fmt.Println(adrs[i], human(addresses[adrs[i]]))
+			var (
+				top20    = make([]string, 20)
+				totalAmt = sdk.NewInt(0)
+			)
+			for i, addr := range addrs {
+				if i < 20 {
+					top20[i] = addr
+				}
+				totalAmt = totalAmt.Add(addresses[addr])
 			}
-			t := sdk.NewInt(0)
-			for _, v := range addresses {
-				t = t.Add(v)
+			table := newMarkdownTable("Position", "Address", "ID", "$ATONE", "Supply %")
+			for i, addr := range top20 {
+				amt := addresses[addr]
+				table.Append([]string{
+					fmt.Sprint(i + 1),
+					addr,
+					knownAddrs[addr],
+					human(amt),
+					humanPercent(amt.ToDec().Quo(totalAmt.ToDec())),
+				})
 			}
-			fmt.Println("TOTAL", human(t))
+			table.Render()
 			return nil
 		},
 	}
