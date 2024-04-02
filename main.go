@@ -204,6 +204,9 @@ func distributionCmd() *ffcli.Command {
 				}
 				airdrops = append(airdrops, airdrop)
 			}
+			if err := printAirdropsStats(*chartMode, airdrops); err != nil {
+				return err
+			}
 			if len(airdrops) == 1 {
 				// Write airdrop.json only if a single distriParamss
 				bz, err := json.MarshalIndent(airdrops[0].addresses, "", "  ")
@@ -213,9 +216,7 @@ func distributionCmd() *ffcli.Command {
 				if err := os.WriteFile(airdropFile, bz, 0o666); err != nil {
 					return err
 				}
-			}
-			if err := printAirdropsStats(*chartMode, airdrops); err != nil {
-				return err
+				fmt.Printf("⚠ '%s' has been created/updated, don't forget to update S3 ⚠\n", airdropFile)
 			}
 			return nil
 		},
