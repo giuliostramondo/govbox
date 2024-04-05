@@ -22,8 +22,8 @@ func main() {
 		ShortUsage: "govbox <subcommand> <path>",
 		ShortHelp:  "Set of commands for GovGen proposals.",
 		Subcommands: []*ffcli.Command{
-			tallyCmd(), accountsCmd(), genesisCmd(),
-			autoStakingCmd(), distributionCmd(), top20Cmd(),
+			tallyCmd(), accountsCmd(), genesisCmd(), autoStakingCmd(),
+			distributionCmd(), top20Cmd(), propJSONCmd(),
 		},
 		Exec: func(ctx context.Context, args []string) error {
 			return flag.ErrHelp
@@ -188,7 +188,7 @@ func distributionCmd() *ffcli.Command {
 				}
 			}
 			var (
-				datapath     = args[0]
+				datapath     = fs.Arg(0)
 				accountsFile = filepath.Join(datapath, "accounts.json")
 				airdropFile  = filepath.Join(datapath, "airdrop.json")
 				airdrops     []airdrop
@@ -278,6 +278,43 @@ func top20Cmd() *ffcli.Command {
 				})
 			}
 			table.Render()
+			return nil
+		},
+	}
+}
+
+func propJSONCmd() *ffcli.Command {
+	fs := flag.NewFlagSet("propJSON", flag.ContinueOnError)
+	deposit := fs.String("deposit", "50000000ugovgen", "Proposal deposit (min=50,000,000ugovgen, max=5,000,000,000ugovgen)")
+	return &ffcli.Command{
+		Name:       "propJSON",
+		ShortUsage: "govbox propJSON <path/to/proposal.md>",
+		ShortHelp:  "Prints the JSON format compatible with the submit-proposal CLI gov module",
+		FlagSet:    fs,
+		Exec: func(ctx context.Context, args []string) error {
+			if len(args) == 0 {
+				return flag.ErrHelp
+			}
+			fs.Parse(args)
+			bz, err := os.ReadFile(fs.Arg(0))
+			if err != nil {
+				return err
+			}
+			// Fetch title from markdown
+			title := strings.SplitN(string(bz), "\n", 2)[0]
+			title = title[2:] // Remove the '# ' prefix
+
+			data := map[string]any{
+				"title":       title,
+				"description": string(bz),
+				"deposit":     *deposit,
+				"type":        "Text",
+			}
+			bz, err = json.MarshalIndent(data, "", "  ")
+			if err != nil {
+				return err
+			}
+			fmt.Println(string(bz))
 			return nil
 		},
 	}
