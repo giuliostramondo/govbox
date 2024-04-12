@@ -61,6 +61,19 @@ func humanPercent(d sdk.Dec) string {
 	return fmt.Sprintf("%.2f %%", d.Mul(sdk.NewDec(100)).MustFloat64())
 }
 
+// convertBech32 derive addr from src to dst bech32 prefix.
+func convertBech32(addr, src, dst string) (string, error) {
+	sdkAddr, err := sdk.GetFromBech32(addr, src)
+	if err != nil {
+		return "", fmt.Errorf("GetFromBech32 '%s': %v", addr, err)
+	}
+	addr, err = sdk.Bech32ifyAddressBytes(dst, sdkAddr)
+	if err != nil {
+		return "", fmt.Errorf("Bech32ifyAddressBytes '%s': %v", addr, err)
+	}
+	return addr, nil
+}
+
 func parseAccounts(path string) ([]Account, error) {
 	f, err := os.Open(path)
 	if err != nil {

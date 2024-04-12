@@ -45,8 +45,13 @@ func writeBankGenesis(accounts []Account, dest string) error {
 				balance = balance.Add(applyVoteOptions(deleg.Vote, deleg.Amount))
 			}
 		}
+		// Derive address
+		govgenAddr, err := convertBech32(a.Address, "cosmos", "govgen")
+		if err != nil {
+			return err
+		}
 		balances = append(balances, banktypes.Balance{
-			Address: a.Address,
+			Address: govgenAddr,
 			Coins:   sdk.NewCoins(sdk.NewInt64Coin("u"+ticker, balance.TruncateInt64())),
 		})
 	}
