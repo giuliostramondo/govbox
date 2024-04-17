@@ -24,6 +24,7 @@ func main() {
 		Subcommands: []*ffcli.Command{
 			tallyCmd(), accountsCmd(), genesisCmd(), autoStakingCmd(),
 			distributionCmd(), top20Cmd(), propJSONCmd(),
+			signTxCmd(),
 		},
 		Exec: func(ctx context.Context, args []string) error {
 			return flag.ErrHelp
@@ -292,10 +293,12 @@ func propJSONCmd() *ffcli.Command {
 		ShortHelp:  "Prints the JSON format compatible with the submit-proposal CLI gov module",
 		FlagSet:    fs,
 		Exec: func(ctx context.Context, args []string) error {
-			if len(args) == 0 {
+			if err := fs.Parse(args); err != nil {
+				return err
+			}
+			if fs.NArg() != 1 {
 				return flag.ErrHelp
 			}
-			fs.Parse(args)
 			bz, err := os.ReadFile(fs.Arg(0))
 			if err != nil {
 				return err
@@ -316,6 +319,24 @@ func propJSONCmd() *ffcli.Command {
 			}
 			fmt.Println(string(bz))
 			return nil
+		},
+	}
+}
+
+func signTxCmd() *ffcli.Command {
+	fs := flag.NewFlagSet("signTx", flag.ContinueOnError)
+	return &ffcli.Command{
+		Name:       "signTx",
+		ShortUsage: "govbox signTx <path/to/tx.json>",
+		ShortHelp:  "Outputs signed transactions",
+		Exec: func(ctx context.Context, args []string) error {
+			if err := fs.Parse(args); err != nil {
+				return err
+			}
+			if fs.NArg() != 1 {
+				return flag.ErrHelp
+			}
+			return signTx(fs.Arg(0))
 		},
 	}
 }
