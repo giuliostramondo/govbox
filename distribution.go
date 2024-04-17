@@ -182,7 +182,12 @@ func distribution(accounts []Account, params distriParams) (airdrop, error) {
 		airdrop.atone.unstaked = airdrop.atone.unstaked.Add(liquidAirdropAmt)
 		// add address and amount (skipping 0 balance)
 		if amtInt := airdropAmt.RoundInt(); !amtInt.IsZero() {
-			airdrop.addresses[acc.Address] = amtInt
+			// Derive address
+			atomOneAddr, err := convertBech32(acc.Address, "cosmos", "atom")
+			if err != nil {
+				return airdrop, err
+			}
+			airdrop.addresses[atomOneAddr] = amtInt
 		}
 	}
 	return airdrop, nil
