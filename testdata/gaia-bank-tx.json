@@ -1,0 +1,47 @@
+{
+  "body": {
+    "messages": [
+      {
+        "@type": "/cosmos.bank.v1beta1.MsgSend",
+        "from_address": "cosmos1k8e50d2d8xkdfw9c4et3m45llh69e7xzw6uzga",
+        "to_address": "cosmos1kp8wl9t99azqdf8qnhjku606wtzna04rkasp9a",
+        "amount": [
+          {
+            "denom": "uatom",
+            "amount": "1000"
+          }
+        ]
+      },
+      {
+        "@type": "/cosmos.bank.v1beta1.MsgSend",
+        "from_address": "cosmos1k8e50d2d8xkdfw9c4et3m45llh69e7xzw6uzga",
+        "to_address": "cosmos1kp8wl9t99azqdf8qnhjku606wtzna04rkasp9a",
+        "amount": [
+          {
+            "denom": "uatom",
+            "amount": "1000"
+          }
+        ]
+      }
+    ],
+    "memo": "",
+    "timeout_height": "0",
+    "extension_options": [],
+    "non_critical_extension_options": []
+  },
+  "auth_info": {
+    "signer_infos": [],
+    "fee": {
+      "amount": [
+        {
+          "denom": "ugovgen",
+          "amount": "50000"
+        }
+      ],
+      "gas_limit": "200000",
+      "payer": "",
+      "granter": ""
+    }
+  },
+  "signatures": []
+}
