@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
 	h "github.com/dustin/go-humanize"
 	"github.com/gogo/protobuf/jsonpb"
@@ -106,6 +108,62 @@ func parseAccountTypesPerAddr(path string) (map[string]string, error) {
 	}
 	fmt.Printf("%s accounts\n", h.Comma(int64(len(accountTypesByAddr))))
 	return accountTypesByAddr, nil
+}
+
+func analyzeVestingAccounts(path string) error {
+	f, err := os.Open(filepath.Join(path, "auth_genesis.json"))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	var genesis authtypes.GenesisState
+	err = unmarshaler.Unmarshal(f, &genesis)
+	if err != nil {
+		return err
+	}
+	var (
+		now             = time.Now()
+		numVesting      int
+		numStillVesting int
+		totalVesting    sdk.Coins
+		blocktime             = time.Unix(1700946028, 0) // time of prop848 2023-11-25 22:00:28 +0100 CET
+		highCapInt      int64 = 10000000000
+		highCap               = sdk.NewCoins(sdk.NewInt64Coin("uatom", highCapInt))
+		numHighCap      int
+	)
+	for i, any := range genesis.Accounts {
+		var acc authtypes.GenesisAccount
+		registry.UnpackAny(any, &acc)
+		if strings.Contains(genesis.Accounts[i].GetTypeUrl(), "Vesting") {
+			numVesting++
+			switch v := acc.(type) {
+			case *vestingtypes.ContinuousVestingAccount:
+				d := time.Unix(v.EndTime, 0)
+				if d.After(now) {
+					numStillVesting++
+					vestingAmt := v.GetVestingCoins(blocktime)
+					totalVesting = totalVesting.Add(vestingAmt...)
+					if vestingAmt.IsAllGT(highCap) {
+						numHighCap++
+						fmt.Println("CONT VEST", acc.GetAddress().String(), d, vestingAmt)
+					}
+				}
+			case *vestingtypes.DelayedVestingAccount:
+				d := time.Unix(v.EndTime, 0)
+				if d.After(now) {
+					numStillVesting++
+					totalVesting = totalVesting.Add(v.OriginalVesting...)
+					if v.OriginalVesting.IsAllGT(highCap) {
+						numHighCap++
+						fmt.Println("DEL VEST", acc.GetAddress().String(), d, v.OriginalVesting)
+					}
+				}
+			}
+		}
+	}
+	fmt.Printf("%d/%d valid vesting accounts, total of %s freed\n", numStillVesting, numVesting, totalVesting)
+	fmt.Printf("%d vesting account(s) with more than %s vesting\n", numHighCap, highCap)
+	return nil
 }
 
 func parseVotesByAddr(path string) (map[string]govtypes.WeightedVoteOptions, error) {

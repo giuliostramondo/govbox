@@ -24,7 +24,7 @@ func main() {
 		Subcommands: []*ffcli.Command{
 			tallyCmd(), accountsCmd(), genesisCmd(), autoStakingCmd(),
 			distributionCmd(), top20Cmd(), propJSONCmd(),
-			signTxCmd(),
+			signTxCmd(), vestingCmd(),
 		},
 		Exec: func(ctx context.Context, args []string) error {
 			return flag.ErrHelp
@@ -338,6 +338,25 @@ func signTxCmd() *ffcli.Command {
 				return flag.ErrHelp
 			}
 			return signTx(fs.Arg(0))
+		},
+	}
+}
+
+func vestingCmd() *ffcli.Command {
+	return &ffcli.Command{
+		Name:       "vesting",
+		ShortUsage: "govbox vesting <path>",
+		ShortHelp:  "Report vesting accounts analysis",
+		Exec: func(ctx context.Context, args []string) error {
+			if len(args) == 0 {
+				return flag.ErrHelp
+			}
+			datapath := args[0]
+			err := analyzeVestingAccounts(datapath)
+			if err != nil {
+				return err
+			}
+			return nil
 		},
 	}
 }
