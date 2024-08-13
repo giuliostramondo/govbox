@@ -166,6 +166,7 @@ func distributionCmd() *ffcli.Command {
 	chartMode := fs.Bool("chart", false, "Outputs a chart instead of Markdown tables")
 	yesMultipliers := fs.String("yesMultipliers", "1", "List of possible comma-seperated Yes multipliers")
 	noMultipliers := fs.String("noMultipliers", "9", "List of possible comma-separated No multipliers")
+	prefix := fs.String("prefix", "", "Cosmos address prefix (by default it is unchanged: \"cosmos\")")
 
 	cmd := &ffcli.Command{
 		Name:       "distribution",
@@ -199,7 +200,7 @@ func distributionCmd() *ffcli.Command {
 				return err
 			}
 			for _, params := range distriParamss {
-				airdrop, err := distribution(accounts, params)
+				airdrop, err := distribution(accounts, params, *prefix)
 				if err != nil {
 					return err
 				}

@@ -358,7 +358,7 @@ func TestDistribution(t *testing.T) {
 			require := require.New(t)
 			assert := assert.New(t)
 
-			airdrop, err := distribution(tt.accounts, defaultDistriParams())
+			airdrop, err := distribution(tt.accounts, defaultDistriParams(), "")
 
 			require.NoError(err)
 			expectedRes := tt.expectedAddresses(airdrop.nonVotersMultiplier)

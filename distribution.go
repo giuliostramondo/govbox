@@ -85,7 +85,7 @@ func (d distrib) votePercentages() map[govtypes.VoteOption]sdk.Dec {
 	return percs
 }
 
-func distribution(accounts []Account, params distriParams) (airdrop, error) {
+func distribution(accounts []Account, params distriParams, prefix string) (airdrop, error) {
 	airdrop := airdrop{
 		params:    params,
 		addresses: make(map[string]sdk.Int),
@@ -182,8 +182,13 @@ func distribution(accounts []Account, params distriParams) (airdrop, error) {
 		airdrop.atone.unstaked = airdrop.atone.unstaked.Add(liquidAirdropAmt)
 		// add address and amount (skipping 0 balance)
 		if amtInt := airdropAmt.RoundInt(); !amtInt.IsZero() {
-			// Derive address
-			atomOneAddr, err := convertBech32(acc.Address, "cosmos", "atom")
+			if prefix == "" {
+				// Fill with "cosmos" prefixed address
+				airdrop.addresses[acc.Address] = amtInt
+				continue
+			}
+			// Derive address from "cosmos" to prefix parameter
+			atomOneAddr, err := convertBech32(acc.Address, "cosmos", prefix)
 			if err != nil {
 				return airdrop, err
 			}
