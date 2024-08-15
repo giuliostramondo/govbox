@@ -43,6 +43,10 @@ type airdrop struct {
 	atone distrib
 	// Amount of $ATOM slashed for the ICF
 	icfSlash sdk.Dec
+	// Amount minted for CP
+	communityPool sdk.Dec
+	// Amount minted for reserved address
+	reservedAddr sdk.Dec
 }
 
 type distrib struct {
@@ -60,6 +64,7 @@ type distriParams struct {
 	bonus              sdk.Dec
 	malus              sdk.Dec
 	supplyFactor       sdk.Dec
+	supplyMintFactor   sdk.Dec
 }
 
 func (d distriParams) String() string {
@@ -69,11 +74,12 @@ func (d distriParams) String() string {
 
 func defaultDistriParams() distriParams {
 	return distriParams{
-		yesVotesMultiplier: sdk.OneDec(),               // Y get x1
-		noVotesMultiplier:  sdk.NewDec(4),              // N & NWV get 1+x3
-		bonus:              sdk.NewDecWithPrec(103, 2), // 3% bonus
-		malus:              sdk.NewDecWithPrec(97, 2),  // -3% malus
-		supplyFactor:       sdk.NewDecWithPrec(1, 1),   // Decrease final supply by a factor of 10
+		yesVotesMultiplier: sdk.OneDec(),                    // Y get x1
+		noVotesMultiplier:  sdk.NewDec(4),                   // N & NWV get 1+x3
+		bonus:              sdk.NewDecWithPrec(103, 2),      // 3% bonus
+		malus:              sdk.NewDecWithPrec(97, 2),       // -3% malus
+		supplyFactor:       sdk.NewDecWithPrec(1, 1),        // Decrease final supply by a factor of 10
+		supplyMintFactor:   sdk.OneDec().Quo(sdk.NewDec(9)), // 1/9 of the total supply is minted for the CP and a reserved address
 	}
 }
 
@@ -195,6 +201,10 @@ func distribution(accounts []Account, params distriParams, prefix string) (airdr
 			airdrop.addresses[atomOneAddr] = amtInt
 		}
 	}
+	// Compute minted part
+	minted := airdrop.atone.supply.Mul(params.supplyMintFactor)
+	airdrop.communityPool = minted.Quo(sdk.NewDec(2))
+	airdrop.reservedAddr = minted.Quo(sdk.NewDec(2))
 	return airdrop, nil
 }
 
@@ -288,6 +298,11 @@ func printAirdropsStats(chartMode bool, airdrops []airdrop) error {
 			humand(airdrop.icfSlash),
 		)
 		printDistrib(airdrop.atone)
+		fmt.Printf(
+			"ATONE TOTAL SUPPLY = DISTRIBUTED(%s) + COMMUNITY_POOL(%s) + RESERVED_ADDRESS(%s) = %s\n",
+			humand(airdrop.atone.supply), humand(airdrop.communityPool), humand(airdrop.reservedAddr),
+			humand(airdrop.atone.supply.Add(airdrop.communityPool).Add(airdrop.reservedAddr)),
+		)
 	}
 	return nil
 }
