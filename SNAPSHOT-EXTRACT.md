@@ -12,7 +12,7 @@ This block is selected to be pre-tally for [cosmoshub-4 proposal 848][prop848].
 
 ### Download
 
-An export is stored in S3 accessible here: https://atomone.fra1.digitaloceanspaces.com/cosmoshub4/cosmoshub-4-export-18010657.json
+An export is stored in S3 accessible here: https://atomone.fra1.digitaloceanspaces.com/cosmoshub-4/cosmoshub-4-export-18010657.json
 
 ### How the block has been exported
 
@@ -42,7 +42,7 @@ This block is selected to be tally for [cosmoshub-4 proposal 848][prop848].
 
 ### Download
 
-An export is stored in S3 accessible here: https://atomone.fra1.digitaloceanspaces.com/cosmoshub4/cosmoshub-4-export-18010658.json
+An export is stored in S3 accessible here: https://atomone.fra1.digitaloceanspaces.com/cosmoshub-4/cosmoshub-4-export-18010658.json
 
 On a stopped blockchain node containing the block 18010658:
 
