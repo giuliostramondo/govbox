@@ -239,14 +239,14 @@ func distribution(accounts []Account, params distriParams, prefix string) (airdr
 					Multiplier: params.noVotesMultiplier,
 					BonusMalus: params.bonus,
 					Factor:     params.supplyFactor,
-					AtoneAmt:   noWithVetoAtomAmt,
+					AtoneAmt:   noWithVetoAirdropAmt,
 				},
 				AbsDetail: amtDetail{
 					AtomAmt:    abstainAtomAmt,
 					Multiplier: airdrop.nonVotersMultiplier,
 					BonusMalus: sdk.OneDec(),
 					Factor:     params.supplyFactor,
-					AtoneAmt:   abstainAtomAmt,
+					AtoneAmt:   abstainAirdropAmt,
 				},
 				DnvDetail: amtDetail{
 					AtomAmt:    noVoteAtomAmt,
@@ -263,6 +263,10 @@ func distribution(accounts []Account, params distriParams, prefix string) (airdr
 					AtoneAmt:   liquidAirdropAmt,
 				},
 				Total: airdropAmt,
+			}
+			amt := yesAirdropAmt.Add(noAirdropAmt).Add(noWithVetoAirdropAmt).Add(abstainAirdropAmt).Add(noVoteAirdropAmt).Add(liquidAirdropAmt)
+			if !amt.Equal(airdropAmt) {
+				panic(fmt.Sprintf("WRONG %+v\n", airdrop.addressesDetail[addr]))
 			}
 		}
 	}

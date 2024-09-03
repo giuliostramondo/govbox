@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -193,7 +194,7 @@ func distributionCmd() *ffcli.Command {
 				datapath          = fs.Arg(0)
 				accountsFile      = filepath.Join(datapath, "accounts.json")
 				airdropFile       = filepath.Join(datapath, "airdrop.json")
-				airdropDetailFile = filepath.Join(datapath, "airdrop_detail.json")
+				airdropDetailFile = filepath.Join(datapath, "airdrop_detail.csv")
 				airdrops          []airdrop
 			)
 			accounts, err := parseAccounts(accountsFile)
@@ -221,14 +222,46 @@ func distributionCmd() *ffcli.Command {
 				}
 				fmt.Printf("⚠ '%s' has been created/updated, don't forget to update S3 ⚠\n", airdropFile)
 
+				f, err := os.Create(airdropDetailFile)
+				if err != nil {
+					return err
+				}
+				defer f.Close()
+				w := csv.NewWriter(f)
+				w.Write([]string{
+					"address", "factor",
+					"yesAtomAmt", "yesMultiplier", "yesBonusMalus", "yesAtoneAmt",
+					"noAtomAmt", "noMultiplier", "noBonusMalus", "noAtoneAmt",
+					"nwvAtomAmt", "nwvMultiplier", "nwvBonusMalus", "nwvAtoneAmt",
+					"absAtomAmt", "absMultiplier", "absBonusMalus", "absAtoneAmt",
+					"dnvAtomAmt", "dnvMultiplier", "dnvBonusMalus", "dnvAtoneAmt",
+					"liquidAtomAmt", "liquidMultiplier", "liquidBonusMalus", "liquidAtoneAmt",
+					"totalAtoneAmt",
+				})
+				for k, v := range airdrops[0].addressesDetail {
+					w.Write([]string{
+						k, v.YesDetail.Factor.String(),
+						v.YesDetail.AtomAmt.String(), v.YesDetail.Multiplier.String(), v.YesDetail.BonusMalus.String(), v.YesDetail.AtoneAmt.String(),
+						v.NoDetail.AtomAmt.String(), v.NoDetail.Multiplier.String(), v.NoDetail.BonusMalus.String(), v.NoDetail.AtoneAmt.String(),
+						v.NWVDetail.AtomAmt.String(), v.NWVDetail.Multiplier.String(), v.NWVDetail.BonusMalus.String(), v.NWVDetail.AtoneAmt.String(),
+						v.AbsDetail.AtomAmt.String(), v.AbsDetail.Multiplier.String(), v.AbsDetail.BonusMalus.String(), v.AbsDetail.AtoneAmt.String(),
+						v.DnvDetail.AtomAmt.String(), v.DnvDetail.Multiplier.String(), v.DnvDetail.BonusMalus.String(), v.DnvDetail.AtoneAmt.String(),
+						v.LiquidDetail.AtomAmt.String(), v.LiquidDetail.Multiplier.String(), v.LiquidDetail.BonusMalus.String(), v.LiquidDetail.AtoneAmt.String(),
+						v.Total.String(),
+					})
+				}
+				w.Flush()
+				fmt.Printf("⚠ '%s' has been created/updated, don't forget to update S3 ⚠\n", airdropDetailFile)
+
 				bz, err = json.MarshalIndent(airdrops[0].addressesDetail, "", "  ")
 				if err != nil {
 					return err
 				}
-				if err := os.WriteFile(airdropDetailFile, bz, 0o666); err != nil {
+				filename := filepath.Join(datapath, "airdrop_detail.json")
+				if err := os.WriteFile(filename, bz, 0o666); err != nil {
 					return err
 				}
-				fmt.Printf("⚠ '%s' has been created/updated, don't forget to update S3 ⚠\n", airdropDetailFile)
+				fmt.Printf("⚠ '%s' has been created/updated, don't forget to update S3 ⚠\n", filename)
 			}
 			return nil
 		},
