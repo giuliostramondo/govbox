@@ -252,16 +252,6 @@ func distributionCmd() *ffcli.Command {
 				}
 				w.Flush()
 				fmt.Printf("⚠ '%s' has been created/updated, don't forget to update S3 ⚠\n", airdropDetailFile)
-
-				bz, err = json.MarshalIndent(airdrops[0].addressesDetail, "", "  ")
-				if err != nil {
-					return err
-				}
-				filename := filepath.Join(datapath, "airdrop_detail.json")
-				if err := os.WriteFile(filename, bz, 0o666); err != nil {
-					return err
-				}
-				fmt.Printf("⚠ '%s' has been created/updated, don't forget to update S3 ⚠\n", filename)
 			}
 			return nil
 		},
