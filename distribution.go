@@ -34,7 +34,7 @@ type airdrop struct {
 	params distriParams
 	// addresses contains the airdrop amount per address.
 	addresses       map[string]sdk.Int
-	addressesDetail map[string]airdropDetail
+	addressesDetail []addrAmtDetail
 	// nonVotersMultiplier ensures that non-voters don't hold more than 1/3 of
 	// the supply
 	nonVotersMultiplier sdk.Dec
@@ -50,7 +50,8 @@ type airdrop struct {
 	reservedAddr sdk.Dec
 }
 
-type airdropDetail struct {
+type addrAmtDetail struct {
+	Address      string    `json:"address"`
 	YesDetail    amtDetail `json:"yesDetail"`
 	NoDetail     amtDetail `json:"noDetail"`
 	NWVDetail    amtDetail `json:"nwvDetail"`
@@ -112,10 +113,9 @@ func (d distrib) votePercentages() map[govtypes.VoteOption]sdk.Dec {
 
 func distribution(accounts []Account, params distriParams, prefix string) (airdrop, error) {
 	airdrop := airdrop{
-		params:          params,
-		addresses:       make(map[string]sdk.Int),
-		addressesDetail: make(map[string]airdropDetail),
-		icfSlash:        sdk.ZeroDec(),
+		params:    params,
+		addresses: make(map[string]sdk.Int),
+		icfSlash:  sdk.ZeroDec(),
 		atom: distrib{
 			supply:   sdk.ZeroDec(),
 			votes:    newVoteMap(),
@@ -219,7 +219,8 @@ func distribution(accounts []Account, params distriParams, prefix string) (airdr
 			}
 			// Fill with "cosmos" prefixed address
 			airdrop.addresses[addr] = amtInt
-			airdrop.addressesDetail[addr] = airdropDetail{
+			ad := addrAmtDetail{
+				Address: addr,
 				YesDetail: amtDetail{
 					AtomAmt:    yesAtomAmt,
 					Multiplier: params.yesVotesMultiplier,
@@ -264,9 +265,10 @@ func distribution(accounts []Account, params distriParams, prefix string) (airdr
 				},
 				Total: airdropAmt,
 			}
+			airdrop.addressesDetail = append(airdrop.addressesDetail, ad)
 			amt := yesAirdropAmt.Add(noAirdropAmt).Add(noWithVetoAirdropAmt).Add(abstainAirdropAmt).Add(noVoteAirdropAmt).Add(liquidAirdropAmt)
 			if !amt.Equal(airdropAmt) {
-				panic(fmt.Sprintf("WRONG %+v\n", airdrop.addressesDetail[addr]))
+				panic(fmt.Sprintf("WRONG %+v\n", ad))
 			}
 		}
 	}

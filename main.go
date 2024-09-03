@@ -238,9 +238,9 @@ func distributionCmd() *ffcli.Command {
 					"liquidAtomAmt", "liquidMultiplier", "liquidBonusMalus", "liquidAtoneAmt",
 					"totalAtoneAmt",
 				})
-				for k, v := range airdrops[0].addressesDetail {
+				for _, v := range airdrops[0].addressesDetail {
 					w.Write([]string{
-						k, v.YesDetail.Factor.String(),
+						v.Address, v.YesDetail.Factor.String(),
 						v.YesDetail.AtomAmt.String(), v.YesDetail.Multiplier.String(), v.YesDetail.BonusMalus.String(), v.YesDetail.AtoneAmt.String(),
 						v.NoDetail.AtomAmt.String(), v.NoDetail.Multiplier.String(), v.NoDetail.BonusMalus.String(), v.NoDetail.AtoneAmt.String(),
 						v.NWVDetail.AtomAmt.String(), v.NWVDetail.Multiplier.String(), v.NWVDetail.BonusMalus.String(), v.NWVDetail.AtoneAmt.String(),

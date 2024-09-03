@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"maps"
+	"slices"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -131,10 +133,10 @@ func getAccounts(
 			}
 		}
 	}
-	// Map to slice
+	// Map to slice with deterministic order
 	var accounts []Account
-	for _, a := range accountsByAddr {
-		accounts = append(accounts, a)
+	for _, addr := range slices.Sorted(maps.Keys(accountsByAddr)) {
+		accounts = append(accounts, accountsByAddr[addr])
 	}
 	return accounts
 }
