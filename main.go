@@ -190,10 +190,11 @@ func distributionCmd() *ffcli.Command {
 				}
 			}
 			var (
-				datapath     = fs.Arg(0)
-				accountsFile = filepath.Join(datapath, "accounts.json")
-				airdropFile  = filepath.Join(datapath, "airdrop.json")
-				airdrops     []airdrop
+				datapath          = fs.Arg(0)
+				accountsFile      = filepath.Join(datapath, "accounts.json")
+				airdropFile       = filepath.Join(datapath, "airdrop.json")
+				airdropDetailFile = filepath.Join(datapath, "airdrop_detail.json")
+				airdrops          []airdrop
 			)
 			accounts, err := parseAccounts(accountsFile)
 			if err != nil {
@@ -219,6 +220,15 @@ func distributionCmd() *ffcli.Command {
 					return err
 				}
 				fmt.Printf("⚠ '%s' has been created/updated, don't forget to update S3 ⚠\n", airdropFile)
+
+				bz, err = json.MarshalIndent(airdrops[0].addressesDetail, "", "  ")
+				if err != nil {
+					return err
+				}
+				if err := os.WriteFile(airdropDetailFile, bz, 0o666); err != nil {
+					return err
+				}
+				fmt.Printf("⚠ '%s' has been created/updated, don't forget to update S3 ⚠\n", airdropDetailFile)
 			}
 			return nil
 		},

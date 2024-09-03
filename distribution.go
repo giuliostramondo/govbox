@@ -33,7 +33,8 @@ type airdrop struct {
 	// params hold the distribution parameters that resulted in this airdrop
 	params distriParams
 	// addresses contains the airdrop amount per address.
-	addresses map[string]sdk.Int
+	addresses       map[string]sdk.Int
+	addressesDetail map[string]airdropDetail
 	// nonVotersMultiplier ensures that non-voters don't hold more than 1/3 of
 	// the supply
 	nonVotersMultiplier sdk.Dec
@@ -47,6 +48,24 @@ type airdrop struct {
 	communityPool sdk.Dec
 	// Amount minted for reserved address
 	reservedAddr sdk.Dec
+}
+
+type airdropDetail struct {
+	YesDetail    amtDetail `json:"yesDetail"`
+	NoDetail     amtDetail `json:"noDetail"`
+	NWVDetail    amtDetail `json:"nwvDetail"`
+	AbsDetail    amtDetail `json:"absDetail"`
+	DnvDetail    amtDetail `json:"dnvDetail"`
+	LiquidDetail amtDetail `json:"liquidDetail"`
+	Total        sdk.Dec   `json:"total"`
+}
+
+type amtDetail struct {
+	AtomAmt    sdk.Dec `json:"atomAmt"`
+	Multiplier sdk.Dec `json:"multiplier"`
+	BonusMalus sdk.Dec `json:"bonusMalus"`
+	Factor     sdk.Dec `json:"factor"`
+	AtoneAmt   sdk.Dec `json:"atoneAmt"`
 }
 
 type distrib struct {
@@ -93,9 +112,10 @@ func (d distrib) votePercentages() map[govtypes.VoteOption]sdk.Dec {
 
 func distribution(accounts []Account, params distriParams, prefix string) (airdrop, error) {
 	airdrop := airdrop{
-		params:    params,
-		addresses: make(map[string]sdk.Int),
-		icfSlash:  sdk.ZeroDec(),
+		params:          params,
+		addresses:       make(map[string]sdk.Int),
+		addressesDetail: make(map[string]airdropDetail),
+		icfSlash:        sdk.ZeroDec(),
 		atom: distrib{
 			supply:   sdk.ZeroDec(),
 			votes:    newVoteMap(),
@@ -188,17 +208,62 @@ func distribution(accounts []Account, params distriParams, prefix string) (airdr
 		airdrop.atone.unstaked = airdrop.atone.unstaked.Add(liquidAirdropAmt)
 		// add address and amount (skipping 0 balance)
 		if amtInt := airdropAmt.RoundInt(); !amtInt.IsZero() {
-			if prefix == "" {
-				// Fill with "cosmos" prefixed address
-				airdrop.addresses[acc.Address] = amtInt
-				continue
+			addr := acc.Address
+			if prefix != "" {
+				// Derive address from "cosmos" to prefix parameter
+				var err error
+				addr, err = convertBech32(acc.Address, "cosmos", prefix)
+				if err != nil {
+					return airdrop, err
+				}
 			}
-			// Derive address from "cosmos" to prefix parameter
-			atomOneAddr, err := convertBech32(acc.Address, "cosmos", prefix)
-			if err != nil {
-				return airdrop, err
+			// Fill with "cosmos" prefixed address
+			airdrop.addresses[addr] = amtInt
+			airdrop.addressesDetail[addr] = airdropDetail{
+				YesDetail: amtDetail{
+					AtomAmt:    yesAtomAmt,
+					Multiplier: params.yesVotesMultiplier,
+					BonusMalus: sdk.OneDec(),
+					Factor:     params.supplyFactor,
+					AtoneAmt:   yesAirdropAmt,
+				},
+				NoDetail: amtDetail{
+					AtomAmt:    noAtomAmt,
+					Multiplier: params.noVotesMultiplier,
+					BonusMalus: sdk.OneDec(),
+					Factor:     params.supplyFactor,
+					AtoneAmt:   noAirdropAmt,
+				},
+				NWVDetail: amtDetail{
+					AtomAmt:    noWithVetoAtomAmt,
+					Multiplier: params.noVotesMultiplier,
+					BonusMalus: params.bonus,
+					Factor:     params.supplyFactor,
+					AtoneAmt:   noWithVetoAtomAmt,
+				},
+				AbsDetail: amtDetail{
+					AtomAmt:    abstainAtomAmt,
+					Multiplier: airdrop.nonVotersMultiplier,
+					BonusMalus: sdk.OneDec(),
+					Factor:     params.supplyFactor,
+					AtoneAmt:   abstainAtomAmt,
+				},
+				DnvDetail: amtDetail{
+					AtomAmt:    noVoteAtomAmt,
+					Multiplier: airdrop.nonVotersMultiplier,
+					BonusMalus: params.malus,
+					Factor:     params.supplyFactor,
+					AtoneAmt:   noVoteAirdropAmt,
+				},
+				LiquidDetail: amtDetail{
+					AtomAmt:    acc.LiquidAmount,
+					Multiplier: airdrop.nonVotersMultiplier,
+					BonusMalus: params.malus,
+					Factor:     params.supplyFactor,
+					AtoneAmt:   liquidAirdropAmt,
+				},
+				Total: airdropAmt,
 			}
-			airdrop.addresses[atomOneAddr] = amtInt
 		}
 	}
 	// Compute minted part
