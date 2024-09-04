@@ -342,6 +342,9 @@ func propJSONCmd() *ffcli.Command {
 			if err != nil {
 				return err
 			}
+			if len(string(bz)) > 10000 {
+				return fmt.Errorf("Description has more than 10000 characters (%d)", len(string(bz)))
+			}
 			// Fetch title from markdown
 			title := strings.SplitN(string(bz), "\n", 2)[0]
 			title = title[2:] // Remove the '# ' prefix
