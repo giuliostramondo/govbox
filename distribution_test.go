@@ -86,14 +86,14 @@ func TestDistribution(t *testing.T) {
 					"didntVote":  sdk.NewDec(1).Mul(nonVotersMult.Mul(malus)).Add(sdk.NewDec(2).Mul(nonVotersMult).Mul(malus)),
 				}
 			},
-			expectedTotal:    27,
-			expectedUnstaked: 5,
+			expectedTotal:    57,
+			expectedUnstaked: 10,
 			expectedVotes: map[govtypes.VoteOption]int64{
-				govtypes.OptionEmpty:      2,
+				govtypes.OptionEmpty:      4,
 				govtypes.OptionYes:        2,
-				govtypes.OptionAbstain:    2,
-				govtypes.OptionNo:         8,
-				govtypes.OptionNoWithVeto: 8,
+				govtypes.OptionAbstain:    4,
+				govtypes.OptionNo:         18,
+				govtypes.OptionNoWithVeto: 19,
 			},
 		},
 		{
@@ -136,16 +136,18 @@ func TestDistribution(t *testing.T) {
 				return map[string]sdk.Dec{
 					"no":         sdk.NewDec(1).Mul(nonVotersMult.Mul(malus)).Add(sdk.NewDec(2).Mul(noVotesMultiplier)).QuoInt64(10),
 					"noWithVeto": sdk.NewDec(1).Mul(nonVotersMult.Mul(malus)).Add(sdk.NewDec(2).Mul(noVotesMultiplier).Mul(bonus)).QuoInt64(10),
+					"abstain":    sdk.NewDec(1),
+					"didntVote":  sdk.NewDec(1),
 				}
 			},
-			expectedTotal:    3,
-			expectedUnstaked: 0,
+			expectedTotal:    6,
+			expectedUnstaked: 1,
 			expectedVotes: map[govtypes.VoteOption]int64{
 				govtypes.OptionEmpty:      0,
 				govtypes.OptionYes:        0,
 				govtypes.OptionAbstain:    0,
-				govtypes.OptionNo:         1,
-				govtypes.OptionNoWithVeto: 1,
+				govtypes.OptionNo:         2,
+				govtypes.OptionNoWithVeto: 2,
 			},
 		},
 		{
@@ -190,14 +192,14 @@ func TestDistribution(t *testing.T) {
 						Add(sdk.NewDec(18).Mul(sdk.NewDecWithPrec(4, 1)).Mul(noVotesMultiplier).Mul(bonus)),
 				}
 			},
-			expectedTotal:    79,
-			expectedUnstaked: 5,
+			expectedTotal:    174,
+			expectedUnstaked: 12,
 			expectedVotes: map[govtypes.VoteOption]int64{
 				govtypes.OptionEmpty:      0,
 				govtypes.OptionYes:        2,
-				govtypes.OptionAbstain:    20,
-				govtypes.OptionNo:         22,
-				govtypes.OptionNoWithVeto: 30,
+				govtypes.OptionAbstain:    44,
+				govtypes.OptionNo:         49,
+				govtypes.OptionNoWithVeto: 67,
 			},
 		},
 		{
@@ -254,14 +256,14 @@ func TestDistribution(t *testing.T) {
 						Add(sdk.NewDec(6).Mul(noVotesMultiplier).Mul(bonus)),
 				}
 			},
-			expectedTotal:    71,
-			expectedUnstaked: 3,
+			expectedTotal:    153,
+			expectedUnstaked: 7,
 			expectedVotes: map[govtypes.VoteOption]int64{
-				govtypes.OptionEmpty:      6,
+				govtypes.OptionEmpty:      14,
 				govtypes.OptionYes:        3,
-				govtypes.OptionAbstain:    13,
-				govtypes.OptionNo:         20,
-				govtypes.OptionNoWithVeto: 25,
+				govtypes.OptionAbstain:    29,
+				govtypes.OptionNo:         45,
+				govtypes.OptionNoWithVeto: 56,
 			},
 		},
 		{
@@ -342,14 +344,14 @@ func TestDistribution(t *testing.T) {
 						Add(sdk.NewDec(3).Mul(nonVotersMult.Mul(malus))),
 				}
 			},
-			expectedTotal:    96,
-			expectedUnstaked: 2,
+			expectedTotal:    206,
+			expectedUnstaked: 5,
 			expectedVotes: map[govtypes.VoteOption]int64{
-				govtypes.OptionEmpty:      7,
+				govtypes.OptionEmpty:      14,
 				govtypes.OptionYes:        6,
-				govtypes.OptionAbstain:    22,
-				govtypes.OptionNo:         30,
-				govtypes.OptionNoWithVeto: 30,
+				govtypes.OptionAbstain:    48,
+				govtypes.OptionNo:         67,
+				govtypes.OptionNoWithVeto: 67,
 			},
 		},
 	}
