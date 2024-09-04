@@ -95,7 +95,7 @@ func (d distriParams) String() string {
 func defaultDistriParams() distriParams {
 	return distriParams{
 		yesVotesMultiplier: sdk.OneDec(),                    // Y get x1
-		noVotesMultiplier:  sdk.NewDec(4),                   // N & NWV get 1+x3
+		noVotesMultiplier:  sdk.NewDec(9),                   // N & NWV get x9
 		bonus:              sdk.NewDecWithPrec(103, 2),      // 3% bonus
 		malus:              sdk.NewDecWithPrec(97, 2),       // -3% malus
 		supplyFactor:       sdk.NewDecWithPrec(1, 1),        // Decrease final supply by a factor of 10
