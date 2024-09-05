@@ -12,21 +12,30 @@ import (
 // TODO add tests
 func writeBankGenesis(airdrop airdrop, dest string) error {
 	const ticker = "atone"
-	var balances []banktypes.Balance
+	var (
+		balances    []banktypes.Balance
+		totalSupply sdk.Coins
+	)
 	for addr, amt := range airdrop.addresses {
+		coins := sdk.NewCoins(sdk.NewCoin("u"+ticker, amt))
 		balances = append(balances, banktypes.Balance{
 			Address: addr,
-			Coins:   sdk.NewCoins(sdk.NewCoin("u"+ticker, amt)),
+			Coins:   coins,
 		})
+		totalSupply = totalSupply.Add(coins...)
 	}
 	g := banktypes.GenesisState{
+		Supply: totalSupply,
+		Params: banktypes.Params{
+			DefaultSendEnabled: true,
+		},
 		DenomMetadata: []banktypes.Metadata{
 			{
 				Display:     ticker,
 				Symbol:      strings.ToUpper(ticker),
 				Base:        "u" + ticker,
-				Name:        "Atom One Atone",
-				Description: "The token of Atom One Hub",
+				Name:        "AtomOne Atone",
+				Description: "The native staking token of AtomOne Hub",
 				DenomUnits: []*banktypes.DenomUnit{
 					{
 						Aliases:  []string{"micro" + ticker},
