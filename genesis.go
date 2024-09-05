@@ -2,15 +2,38 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
+
+	tmjson "github.com/tendermint/tendermint/libs/json"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
-// TODO add tests
-func writeBankGenesis(airdrop airdrop, dest string) error {
+func writeGenesis(genesisFile string, airdrop airdrop) error {
+	bz, err := os.ReadFile(genesisFile)
+	if err != nil {
+		return fmt.Errorf("readfile %s: %w", genesisFile, err)
+	}
+	var genesisState map[string]json.RawMessage
+	if err := tmjson.Unmarshal(bz, &genesisState); err != nil {
+		return fmt.Errorf("tmjson.Unmarshal: %w", err)
+	}
+	// bz, err = tmjson.MarshalIndent(genesisState, "", "  ")
+	// if err != nil {
+	// return err
+	// }
+	// fmt.Println(string(bz))
+	// return nil
+	var appState map[string]json.RawMessage
+	if err := tmjson.Unmarshal(genesisState["app_state"], &appState); err != nil {
+		return fmt.Errorf("tmjson.Unmarshal appstate: %w", err)
+	}
+
+	//-----------------------------------------
+	// Update bank genesis
 	const ticker = "atone"
 	var (
 		balances    []banktypes.Balance
@@ -24,10 +47,11 @@ func writeBankGenesis(airdrop airdrop, dest string) error {
 		})
 		totalSupply = totalSupply.Add(coins...)
 	}
-	g := banktypes.GenesisState{
+	bankGen := banktypes.GenesisState{
 		Supply: totalSupply,
 		Params: banktypes.Params{
 			DefaultSendEnabled: true,
+			SendEnabled:        []*banktypes.SendEnabled{},
 		},
 		DenomMetadata: []banktypes.Metadata{
 			{
@@ -57,9 +81,21 @@ func writeBankGenesis(airdrop airdrop, dest string) error {
 		},
 		Balances: balances,
 	}
-	bz, err := json.MarshalIndent(g, "", "  ")
+
+	//-----------------------------------------
+	// Update the whole genesis
+	appState["bank"], err = tmjson.Marshal(bankGen)
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(dest, bz, 0o666)
+	genesisState["app_state"], err = tmjson.Marshal(appState)
+	if err != nil {
+		return err
+	}
+	bz, err = tmjson.MarshalIndent(genesisState, "", "  ")
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(bz))
+	return nil
 }
