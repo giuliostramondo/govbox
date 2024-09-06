@@ -21,12 +21,6 @@ func writeGenesis(genesisFile string, airdrop airdrop) error {
 	if err := tmjson.Unmarshal(bz, &genesisState); err != nil {
 		return fmt.Errorf("tmjson.Unmarshal: %w", err)
 	}
-	// bz, err = tmjson.MarshalIndent(genesisState, "", "  ")
-	// if err != nil {
-	// return err
-	// }
-	// fmt.Println(string(bz))
-	// return nil
 	var appState map[string]json.RawMessage
 	if err := tmjson.Unmarshal(genesisState["app_state"], &appState); err != nil {
 		return fmt.Errorf("tmjson.Unmarshal appstate: %w", err)
@@ -47,6 +41,21 @@ func writeGenesis(genesisFile string, airdrop airdrop) error {
 		})
 		totalSupply = totalSupply.Add(coins...)
 	}
+	// Add reserved address
+	// hex:    0x0000000000000000000000000000000000000da0
+	// bech32: atone1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqrdqzf7whr
+	reservedAddr := []byte("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0d\xa0")
+	bech32ReservedAddr, err := sdk.Bech32ifyAddressBytes("atone", reservedAddr)
+	if err != nil {
+		return fmt.Errorf("Bech32ifyAddressBytes '%s': %v", reservedAddr, err)
+	}
+	reservedAddrCoins := sdk.NewCoins(sdk.NewCoin("u"+ticker, airdrop.reservedAddr.RoundInt()))
+	balances = append(balances, banktypes.Balance{
+		Address: bech32ReservedAddr,
+		Coins:   reservedAddrCoins,
+	})
+	totalSupply = totalSupply.Add(reservedAddrCoins...)
+
 	bankGen := banktypes.GenesisState{
 		Supply: totalSupply,
 		Params: banktypes.Params{
