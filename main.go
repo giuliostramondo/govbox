@@ -7,18 +7,43 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
-	"golang.org/x/exp/maps"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func main() {
+	// addr := "cosmos1uhqq8atwfm79amnmrk5d3ze6f7arkknjma522p"
+	// addr = "cosmos1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqrdqvfzfpm"
+	// addr = "atone1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqrdqzf7whr"
+	// var a uint64 = 0x0000000000000000000000000000000000000da0
+	// binary.Write(a, binary.LittleEndian, a)
+	// res := make([]byte, 20)
+	// bz := strconv.Itoa(a)
+	// fmt.Printf("%x\n", bz)
+	// binary.LittleEndian.PutUint64(res, a)
+	// fmt.Printf("%x\n", res)
+	// aton, _ := convertBech32(addr, "cosmos", "atone")
+	// fmt.Println(aton)
+
+	// sdkAddr, err := sdk.GetFromBech32(addr, "atone")
+	// if err != nil {
+	// panic(err)
+	// }
+	// fmt.Println(addr, len(sdkAddr), hex.EncodeToString(sdkAddr))
+	// fmt.Printf("%X\n", sdkAddr)
+	// os.Exit(1)
+	// resAddr := []byte("\xe5\xc0\x03\xf5\x6e\x4e\xfc\x5e\xee\x7b\x1d\xa8\xd8\x8b\x3a\x4f\xba\x3b\x5a\x72")
+	// resAddr := []byte("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0d\xa0")
+	// addr2 := sdk.MustBech32ifyAddressBytes("cosmos", resAddr)
+	// fmt.Println(addr2)
 	rootCmd := &ffcli.Command{
 		ShortUsage: "govbox <subcommand> <path>",
 		ShortHelp:  "Set of commands for GovGen proposals.",
@@ -284,7 +309,7 @@ func top20Cmd() *ffcli.Command {
 			if err != nil {
 				return err
 			}
-			addrs := maps.Keys(addresses)
+			addrs := slices.Collect(maps.Keys(addresses))
 			sort.Slice(addrs, func(i, j int) bool {
 				return addresses[addrs[i]].GT(addresses[addrs[j]])
 			})
@@ -306,7 +331,7 @@ func top20Cmd() *ffcli.Command {
 					fmt.Sprintf("[%[1]s](https://www.mintscan.io/cosmos/address/%[1]s)", addr),
 					knownAddrs[addr],
 					human(amt),
-					humanPercent(amt.ToDec().Quo(totalAmt.ToDec())),
+					humanPercent(amt.ToLegacyDec().Quo(totalAmt.ToLegacyDec())),
 				})
 			}
 			table.Render()

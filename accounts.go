@@ -6,7 +6,7 @@ import (
 	"slices"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -116,7 +116,7 @@ func getAccounts(
 	for addr, balance := range balancesByAddr {
 		acc, ok := accountsByAddr[addr]
 		if ok {
-			acc.LiquidAmount = balance.Amount.ToDec()
+			acc.LiquidAmount = balance.Amount.ToLegacyDec()
 			accountsByAddr[addr] = acc
 		} else {
 			accType := accountTypesPerAddr[addr]
@@ -128,7 +128,7 @@ func getAccounts(
 			accountsByAddr[addr] = Account{
 				Address:      addr,
 				Type:         accType,
-				LiquidAmount: balance.Amount.ToDec(),
+				LiquidAmount: balance.Amount.ToLegacyDec(),
 				StakedAmount: sdk.ZeroDec(),
 			}
 		}

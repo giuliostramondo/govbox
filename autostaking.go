@@ -8,7 +8,8 @@ import (
 	"sort"
 
 	h "github.com/dustin/go-humanize"
-	tmjson "github.com/tendermint/tendermint/libs/json"
+
+	tmjson "github.com/cometbft/cometbft/libs/json"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -133,6 +134,6 @@ func autoStaking(genesisPath string) error {
 	}
 	fmt.Println("count", h.Comma(int64(numStakes)), h.Comma(int64(len(bankGenesisState.Balances))))
 	fmt.Println("amount", human(totalStake), humani(stakeds), human(supply))
-	fmt.Println("staking ratio", totalStake.ToDec().Quo(supply.ToDec()))
+	fmt.Println("staking ratio", totalStake.ToLegacyDec().Quo(supply.ToLegacyDec()))
 	return nil
 }
