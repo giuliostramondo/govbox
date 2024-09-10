@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
+	"slices"
 	"strings"
 
 	tmjson "github.com/tendermint/tendermint/libs/json"
@@ -33,7 +35,8 @@ func writeGenesis(genesisFile string, airdrop airdrop) error {
 		balances    []banktypes.Balance
 		totalSupply sdk.Coins
 	)
-	for addr, amt := range airdrop.addresses {
+	for _, addr := range slices.Sorted(maps.Keys(airdrop.addresses)) {
+		amt := airdrop.addresses[addr]
 		coins := sdk.NewCoins(sdk.NewCoin("u"+ticker, amt))
 		balances = append(balances, banktypes.Balance{
 			Address: addr,
