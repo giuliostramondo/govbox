@@ -25,6 +25,7 @@ import (
 
 var (
 	registry    = codectypes.NewInterfaceRegistry()
+	marshaler   jsonpb.Marshaler
 	unmarshaler jsonpb.Unmarshaler
 )
 
@@ -36,6 +37,7 @@ func init() {
 	authtypes.RegisterInterfaces(registry)
 	vestingtypes.RegisterInterfaces(registry)
 	icatypes.RegisterInterfaces(registry)
+	marshaler = jsonpb.Marshaler{AnyResolver: registry}
 	unmarshaler = jsonpb.Unmarshaler{AnyResolver: registry}
 }
 
