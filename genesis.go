@@ -15,6 +15,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 )
 
 func writeGenesis(genesisFile string, airdrop airdrop) error {
@@ -37,6 +38,10 @@ func writeGenesis(genesisFile string, airdrop airdrop) error {
 	var bankGen banktypes.GenesisState
 	if err := tmjson.Unmarshal(appState["bank"], &bankGen); err != nil {
 		return fmt.Errorf("umarshal bank genesis: %w", err)
+	}
+	var distrGen distrtypes.GenesisState
+	if err := tmjson.Unmarshal(appState["distribution"], &distrGen); err != nil {
+		return fmt.Errorf("umarshal distribution genesis: %w", err)
 	}
 
 	// Reset supply, balances and accounts
@@ -83,6 +88,19 @@ func writeGenesis(genesisFile string, airdrop airdrop) error {
 	// }
 	// authGen.Accounts = append(authGen.Accounts, any)
 
+	// setup community pool
+	communityPoolCoins := sdk.NewCoins(sdk.NewCoin("u"+ticker, airdrop.communityPool.RoundInt()))
+	distrGen.FeePool = distrtypes.FeePool{
+		CommunityPool: sdk.NewDecCoinsFromCoins(communityPoolCoins...),
+	}
+	// same amount must be distributed to the distribution module account
+	distrModuleAddr := sdk.MustBech32ifyAddressBytes("atone", authtypes.NewModuleAddress(distrtypes.ModuleName))
+	bankGen.Balances = append(bankGen.Balances, banktypes.Balance{
+		Address: distrModuleAddr,
+		Coins:   communityPoolCoins,
+	})
+
+	// setup bank params and denoms
 	bankGen.Params = banktypes.Params{
 		DefaultSendEnabled: true,
 		SendEnabled:        []*banktypes.SendEnabled{},
@@ -117,6 +135,10 @@ func writeGenesis(genesisFile string, airdrop airdrop) error {
 	//-----------------------------------------
 	// Update the  genesis
 	appState["bank"], err = tmjson.Marshal(bankGen)
+	if err != nil {
+		return err
+	}
+	appState["distribution"], err = tmjson.Marshal(distrGen)
 	if err != nil {
 		return err
 	}
