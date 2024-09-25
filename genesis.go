@@ -79,14 +79,13 @@ func writeGenesis(genesisFile string, airdrop airdrop) error {
 		Coins:   reservedAddrCoins,
 	})
 	bankGen.Supply = bankGen.Supply.Add(reservedAddrCoins...)
-	// FIXME: add reserved address as a base account or not ?
-	// maybe it's useless due to the nature of this reserved address: being just a way to hold the tokens with no account.
-	// reservedAcc := &authtypes.BaseAccount{Address: reservedAddr}
-	// any, err := codectypes.NewAnyWithValue(reservedAcc)
-	// if err != nil {
-	// return fmt.Errorf("newAny from base account: %w", err)
-	// }
-	// authGen.Accounts = append(authGen.Accounts, any)
+	// add auth reserved address
+	reservedAcc := &authtypes.BaseAccount{Address: reservedAddr}
+	any, err := codectypes.NewAnyWithValue(reservedAcc)
+	if err != nil {
+		return fmt.Errorf("newAny from base account: %w", err)
+	}
+	authGen.Accounts = append(authGen.Accounts, any)
 
 	// setup community pool
 	communityPoolCoins := sdk.NewCoins(sdk.NewCoin("u"+ticker, airdrop.communityPool.RoundInt()))
