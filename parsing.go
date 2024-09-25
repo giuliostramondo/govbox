@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/gogoproto/jsonpb"
 	h "github.com/dustin/go-humanize"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -27,6 +28,7 @@ var (
 	registry    = codectypes.NewInterfaceRegistry()
 	marshaler   jsonpb.Marshaler
 	unmarshaler jsonpb.Unmarshaler
+	cdc         codec.JSONCodec
 )
 
 func init() {
@@ -39,6 +41,8 @@ func init() {
 	icatypes.RegisterInterfaces(registry)
 	marshaler = jsonpb.Marshaler{AnyResolver: registry}
 	unmarshaler = jsonpb.Unmarshaler{AnyResolver: registry}
+	// FIXME: replace marshaler and unmarshaler by cdc?
+	cdc = codec.NewProtoCodec(registry)
 }
 
 const M = 1_000_000 // 1 million

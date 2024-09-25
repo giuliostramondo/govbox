@@ -4,12 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"maps"
+	"net/http"
 	"os"
 	"slices"
 	"strings"
 
 	tmjson "github.com/cometbft/cometbft/libs/json"
+
+	govtypes "github.com/atomone-hub/atomone/x/gov/types/v1"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,7 +22,8 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 )
 
-// TODO add constitution
+const constitutionLink = "https://raw.githubusercontent.com/atomone-hub/genesis/b84df30364674c3f68b4bc0a43d7ed977ae22226/CONSTITUTION.md"
+
 func writeGenesis(genesisFile string, airdrop airdrop) error {
 	bz, err := os.ReadFile(genesisFile)
 	if err != nil {
@@ -41,8 +46,14 @@ func writeGenesis(genesisFile string, airdrop airdrop) error {
 		return fmt.Errorf("umarshal bank genesis: %w", err)
 	}
 	var distrGen distrtypes.GenesisState
+	// FIXME check how different modules unmarshal their genesis, might be better
+	// using cdc than tmson
 	if err := tmjson.Unmarshal(appState["distribution"], &distrGen); err != nil {
 		return fmt.Errorf("umarshal distribution genesis: %w", err)
+	}
+	var govGen govtypes.GenesisState
+	if err := cdc.UnmarshalJSON(appState["gov"], &govGen); err != nil {
+		return fmt.Errorf("umarshal gov genesis: %w", err)
 	}
 
 	// Reset supply, balances and accounts
@@ -132,6 +143,17 @@ func writeGenesis(genesisFile string, airdrop airdrop) error {
 		},
 	}
 
+	// Update constitution
+	resp, err := http.Get(constitutionLink)
+	if err != nil {
+		return err
+	}
+	bz, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	govGen.Constitution = string(bz)
+
 	//-----------------------------------------
 	// Update the  genesis
 	appState["bank"], err = tmjson.Marshal(bankGen)
@@ -139,6 +161,10 @@ func writeGenesis(genesisFile string, airdrop airdrop) error {
 		return err
 	}
 	appState["distribution"], err = tmjson.Marshal(distrGen)
+	if err != nil {
+		return err
+	}
+	appState["gov"], err = tmjson.Marshal(govGen)
 	if err != nil {
 		return err
 	}
