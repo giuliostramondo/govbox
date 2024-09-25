@@ -54,14 +54,14 @@
     "crisis": {
       "constant_fee": {
         "denom": "uatone",
-        "amount": "1000"
+        "amount": "1333000000"
       }
     },
     "distribution": {
       "params": {
-        "community_tax": "0.020000000000000000",
-        "base_proposer_reward": "0.000000000000000000",
-        "bonus_proposer_reward": "0.000000000000000000",
+        "base_proposer_reward": "0.010000000000000000",
+        "bonus_proposer_reward": "0.040000000000000000",
+        "community_tax": "0.050000000000000000",
         "withdraw_addr_enabled": true
       },
       "fee_pool": {
@@ -106,7 +106,7 @@
         "threshold": "0.667000000000000000",
         "min_initial_deposit_ratio": "0.000000000000000000",
         "burn_vote_quorum": false,
-        "burn_proposal_deposit_prevote": false,
+        "burn_proposal_deposit_prevote": true,
         "min_deposit_ratio": "0.010000000000000000",
         "constitution_amendment_quorum": "0.250000000000000000",
         "constitution_amendment_threshold": "0.900000000000000000",
@@ -129,16 +129,16 @@
         "inflation_max": "0.200000000000000000",
         "inflation_min": "0.070000000000000000",
         "goal_bonded": "0.670000000000000000",
-        "blocks_per_year": "6311520"
+        "blocks_per_year": "4360000"
       }
     },
     "slashing": {
       "params": {
-        "signed_blocks_window": "100",
-        "min_signed_per_window": "0.500000000000000000",
+        "signed_blocks_window": "1000",
+        "min_signed_per_window": "0.050000000000000000",
         "downtime_jail_duration": "600s",
         "slash_fraction_double_sign": "0.050000000000000000",
-        "slash_fraction_downtime": "0.010000000000000000"
+        "slash_fraction_downtime": "0.000100000000000000"
       },
       "signing_infos": [],
       "missed_blocks": []
