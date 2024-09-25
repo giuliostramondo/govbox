@@ -18,6 +18,7 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 )
 
+// TODO add constitution
 func writeGenesis(genesisFile string, airdrop airdrop) error {
 	bz, err := os.ReadFile(genesisFile)
 	if err != nil {
