@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -25,6 +24,14 @@ import (
 
 const constitutionLink = "https://raw.githubusercontent.com/atomone-hub/genesis/af652e0bc2bf1579350648770bf1f7b2d51d4884/CONSTITUTION.md"
 
+// writeGenesis reads airdrop and fills the related modules accordingly in the
+// genesisFile.
+//
+// Note about JSON encoding: the genesisDoc, the appState and the modules
+// genesis use different encoding primitives (it would too simple otherwise!):
+// - genesisDoc uses tmjson "github.com/cometbft/cometbft/libs/json"
+// - appState uses standard "encoding/json"
+// - modules genesis use protoJSON (represented as cdc)
 func writeGenesis(genesisFile string, airdrop airdrop) error {
 	bz, err := os.ReadFile(genesisFile)
 	if err != nil {
@@ -32,24 +39,22 @@ func writeGenesis(genesisFile string, airdrop airdrop) error {
 	}
 	var genesisState tmtypes.GenesisDoc
 	if err := tmjson.Unmarshal(bz, &genesisState); err != nil {
-		return fmt.Errorf("unmarshal genesis: %w", err)
+		return fmt.Errorf("unmarshal genesis doc: %w", err)
 	}
 	var appState map[string]json.RawMessage
-	if err := tmjson.Unmarshal(genesisState.AppState, &appState); err != nil {
+	if err := json.Unmarshal(genesisState.AppState, &appState); err != nil {
 		return fmt.Errorf("unmarshal appstate: %w", err)
 	}
 	var authGen authtypes.GenesisState
-	if err := tmjson.Unmarshal(appState["auth"], &authGen); err != nil {
+	if err := cdc.UnmarshalJSON(appState["auth"], &authGen); err != nil {
 		return fmt.Errorf("umarshal auth genesis: %w", err)
 	}
 	var bankGen banktypes.GenesisState
-	if err := tmjson.Unmarshal(appState["bank"], &bankGen); err != nil {
+	if err := cdc.UnmarshalJSON(appState["bank"], &bankGen); err != nil {
 		return fmt.Errorf("umarshal bank genesis: %w", err)
 	}
 	var distrGen distrtypes.GenesisState
-	// FIXME check how different modules unmarshal their genesis, might be better
-	// using cdc than tmson
-	if err := tmjson.Unmarshal(appState["distribution"], &distrGen); err != nil {
+	if err := cdc.UnmarshalJSON(appState["distribution"], &distrGen); err != nil {
 		return fmt.Errorf("umarshal distribution genesis: %w", err)
 	}
 	var govGen govtypes.GenesisState
@@ -157,31 +162,27 @@ func writeGenesis(genesisFile string, airdrop airdrop) error {
 
 	//-----------------------------------------
 	// Update the  genesis
-	appState["bank"], err = tmjson.Marshal(bankGen)
+	appState["bank"], err = cdc.MarshalJSON(&bankGen)
+	if err != nil {
+		return fmt.Errorf("marshal bank genesis: %w", err)
+	}
+	appState["distribution"], err = cdc.MarshalJSON(&distrGen)
+	if err != nil {
+		return fmt.Errorf("marshal distribution genesis: %w", err)
+	}
+	appState["gov"], err = cdc.MarshalJSON(&govGen)
+	if err != nil {
+		return fmt.Errorf("marshal gov genesis: %w", err)
+	}
+	appState["auth"], err = cdc.MarshalJSON(&authGen)
+	if err != nil {
+		return fmt.Errorf("marshal auth genesis: %w", err)
+	}
+	genesisState.AppState, err = json.MarshalIndent(appState, "", "  ")
 	if err != nil {
 		return err
 	}
-	appState["distribution"], err = tmjson.Marshal(distrGen)
-	if err != nil {
-		return err
-	}
-	appState["gov"], err = tmjson.Marshal(govGen)
-	if err != nil {
-		return err
-	}
-	// Must use `marshaler` here because tmjson throws an error because of the
-	// Any types.
-	var b bytes.Buffer
-	err = marshaler.Marshal(&b, &authGen)
-	if err != nil {
-		return err
-	}
-	appState["auth"] = b.Bytes()
-	genesisState.AppState, err = json.MarshalIndent(appState, "", " ")
-	if err != nil {
-		return err
-	}
-	bz, err = tmjson.MarshalIndent(genesisState, "", " ")
+	bz, err = tmjson.MarshalIndent(genesisState, "", "  ")
 	if err != nil {
 		return err
 	}
