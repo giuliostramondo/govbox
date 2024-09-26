@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	tmjson "github.com/cometbft/cometbft/libs/json"
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	govtypes "github.com/atomone-hub/atomone/x/gov/types/v1"
 
@@ -29,12 +30,12 @@ func writeGenesis(genesisFile string, airdrop airdrop) error {
 	if err != nil {
 		return fmt.Errorf("readfile %s: %w", genesisFile, err)
 	}
-	var genesisState map[string]json.RawMessage
+	var genesisState tmtypes.GenesisDoc
 	if err := tmjson.Unmarshal(bz, &genesisState); err != nil {
 		return fmt.Errorf("unmarshal genesis: %w", err)
 	}
 	var appState map[string]json.RawMessage
-	if err := tmjson.Unmarshal(genesisState["app_state"], &appState); err != nil {
+	if err := tmjson.Unmarshal(genesisState.AppState, &appState); err != nil {
 		return fmt.Errorf("unmarshal appstate: %w", err)
 	}
 	var authGen authtypes.GenesisState
@@ -176,11 +177,11 @@ func writeGenesis(genesisFile string, airdrop airdrop) error {
 		return err
 	}
 	appState["auth"] = b.Bytes()
-	genesisState["app_state"], err = tmjson.Marshal(appState)
+	genesisState.AppState, err = json.MarshalIndent(appState, "", " ")
 	if err != nil {
 		return err
 	}
-	bz, err = tmjson.MarshalIndent(genesisState, "", "  ")
+	bz, err = tmjson.MarshalIndent(genesisState, "", " ")
 	if err != nil {
 		return err
 	}
