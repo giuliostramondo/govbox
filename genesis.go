@@ -87,9 +87,9 @@ func writeGenesis(genesisFile string, airdrop airdrop) error {
 		authGen.Accounts = append(authGen.Accounts, any)
 	}
 	// Add reserved address
-	// hex:    0x0000000000000000000000000000000000000da0
-	// bech32: atone1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqrdqzf7whr
-	reservedAddrBz := []byte("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0d\xa0")
+	// hex:    0x000000000000000000000000000000000000bda0
+	// bech32: atone1qqqqqqqqqqqqqqqqqqqqqqqqqqqqp0dqtalx52
+	reservedAddrBz := []byte("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xbd\xa0")
 	reservedAddrCoins := sdk.NewCoins(sdk.NewCoin("u"+ticker, airdrop.reservedAddr.RoundInt()))
 	reservedAddr := sdk.MustBech32ifyAddressBytes("atone", reservedAddrBz)
 	bankGen.Balances = append(bankGen.Balances, banktypes.Balance{
