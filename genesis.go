@@ -22,7 +22,7 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 )
 
-const constitutionLink = "https://raw.githubusercontent.com/atomone-hub/genesis/b84df30364674c3f68b4bc0a43d7ed977ae22226/CONSTITUTION.md"
+const constitutionLink = "https://raw.githubusercontent.com/atomone-hub/genesis/af652e0bc2bf1579350648770bf1f7b2d51d4884/CONSTITUTION.md"
 
 func writeGenesis(genesisFile string, airdrop airdrop) error {
 	bz, err := os.ReadFile(genesisFile)
