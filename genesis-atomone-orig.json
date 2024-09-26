@@ -97,14 +97,14 @@
         "min_deposit": [
           {
             "denom": "uatone",
-            "amount": "10000000"
+            "amount": "512000000"
           }
         ],
         "max_deposit_period": "1209600s",
         "voting_period": "1814400s",
         "quorum": "0.250000000000000000",
         "threshold": "0.667000000000000000",
-        "min_initial_deposit_ratio": "0.000000000000000000",
+        "min_initial_deposit_ratio": "0.100000000000000000",
         "burn_vote_quorum": false,
         "burn_proposal_deposit_prevote": true,
         "min_deposit_ratio": "0.010000000000000000",
