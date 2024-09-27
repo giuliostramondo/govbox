@@ -24,6 +24,7 @@
   },
   "app_hash": "",
   "app_state": {
+    "07-tendermint": null,
     "auth": {
       "params": {
         "max_memo_characters": "512",
@@ -119,6 +120,75 @@
       },
       "constitution": ""
     },
+    "ibc": {
+      "client_genesis": {
+        "clients": [],
+        "clients_consensus": [],
+        "clients_metadata": [],
+        "params": {
+          "allowed_clients": [
+            "07-tendermint"
+          ]
+        },
+        "create_localhost": false,
+        "next_client_sequence": "0"
+      },
+      "connection_genesis": {
+        "connections": [],
+        "client_connection_paths": [],
+        "next_connection_sequence": "0",
+        "params": {
+          "max_expected_time_per_block": "30000000000"
+        }
+      },
+      "channel_genesis": {
+        "channels": [],
+        "acknowledgements": [],
+        "commitments": [],
+        "receipts": [],
+        "send_sequences": [],
+        "recv_sequences": [],
+        "ack_sequences": [],
+        "next_channel_sequence": "0"
+      }
+    },
+    "interchainaccounts": {
+      "controller_genesis_state": {
+        "active_channels": [],
+        "interchain_accounts": [],
+        "ports": [],
+        "params": {
+          "controller_enabled": true
+        }
+      },
+      "host_genesis_state": {
+        "active_channels": [],
+        "interchain_accounts": [],
+        "port": "icahost",
+        "params": {
+          "host_enabled": true,
+          "allow_messages": [
+            "/atomone.gov.v1.MsgDeposit",
+            "/atomone.gov.v1.MsgSubmitProposal",
+            "/atomone.gov.v1beta1.MsgDeposit",
+            "/atomone.gov.v1beta1.MsgSubmitProposal",
+            "/cosmos.bank.v1beta1.MsgMultiSend",
+            "/cosmos.bank.v1beta1.MsgSend",
+            "/cosmos.distribution.v1beta1.MsgCommunityPoolSpend",
+            "/cosmos.distribution.v1beta1.MsgFundCommunityPool",
+            "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress",
+            "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+            "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission",
+            "/cosmos.feegrant.v1beta1.MsgGrantAllowance",
+            "/cosmos.feegrant.v1beta1.MsgRevokeAllowance",
+            "/cosmos.vesting.v1beta1.MsgCreatePeriodicVestingAccount",
+            "/cosmos.vesting.v1beta1.MsgCreatePermanentLockedAccount",
+            "/cosmos.vesting.v1beta1.MsgCreateVestingAccount",
+            "/ibc.applications.transfer.v1.MsgTransfer"
+          ]
+        }
+      }
+    },
     "mint": {
       "minter": {
         "inflation": "0.130000000000000000",
@@ -133,6 +203,7 @@
         "blocks_per_year": "4360000"
       }
     },
+    "params": null,
     "slashing": {
       "params": {
         "signed_blocks_window": "1000",
@@ -160,6 +231,15 @@
       "unbonding_delegations": [],
       "redelegations": [],
       "exported": false
+    },
+    "transfer": {
+      "port_id": "transfer",
+      "denom_traces": [],
+      "params": {
+        "send_enabled": false,
+        "receive_enabled": false
+      },
+      "total_escrowed": []
     },
     "upgrade": {},
     "vesting": {}
