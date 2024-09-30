@@ -116,6 +116,7 @@ func writeGenesis(genesisFile string, airdrop airdrop) error {
 		Address: distrModuleAddr,
 		Coins:   communityPoolCoins,
 	})
+	bankGen.Supply = bankGen.Supply.Add(communityPoolCoins...)
 
 	// setup bank params and denoms
 	bankGen.Params = banktypes.Params{
