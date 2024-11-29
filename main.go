@@ -50,7 +50,7 @@ func main() {
 		Subcommands: []*ffcli.Command{
 			tallyCmd(), accountsCmd(), genesisCmd(), autoStakingCmd(),
 			distributionCmd(), top20Cmd(), propJSONCmd(),
-			signTxCmd(), vestingCmd(),
+			signTxCmd(), vestingCmd(), depositThrottlingCmd(),
 		},
 		Exec: func(ctx context.Context, args []string) error {
 			return flag.ErrHelp
@@ -415,6 +415,17 @@ func vestingCmd() *ffcli.Command {
 				return err
 			}
 			return nil
+		},
+	}
+}
+
+func depositThrottlingCmd() *ffcli.Command {
+	return &ffcli.Command{
+		Name:       "deposit-throttling",
+		ShortUsage: "govbox deposit-throttling ???",
+		ShortHelp:  "Show chart of deposit throttling",
+		Exec: func(ctx context.Context, args []string) error {
+			return depositThrottling()
 		},
 	}
 }
