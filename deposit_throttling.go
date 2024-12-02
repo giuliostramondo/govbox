@@ -1,16 +1,21 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"io"
+	"log"
 	"math"
+	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
+	"time"
 
+	"github.com/chromedp/chromedp"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
-	"github.com/go-echarts/go-echarts/v2/types"
-	"github.com/pkg/browser"
 )
 
 const (
@@ -22,30 +27,88 @@ const (
 )
 
 func depositThrottling() error {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		boundaryName := "x5789h"
+		// send multi-part header
+		w.Header().Set("Content-Type", fmt.Sprintf("multipart/x-mixed-replace; boundary=%s", boundaryName))
+		w.WriteHeader(http.StatusOK)
+
+		nbBlocks := 100
+		for {
+			select {
+			case <-r.Context().Done():
+				fmt.Println("STOP")
+				return
+			default:
+				fmt.Println("RENDER BLOCK", nbBlocks)
+				filename, err := genChartFile(nbBlocks)
+				if err != nil {
+					panic(err)
+				}
+
+				bz, err := toPNG(r.Context(), filename)
+				if err != nil {
+					panic(err)
+				}
+
+				// start boundary
+				io.WriteString(w, fmt.Sprintf("--%s\n", boundaryName))
+				io.WriteString(w, "Content-Type: image/png\n")
+				io.WriteString(w, fmt.Sprintf("Content-Length: %d\n\n", len(bz)))
+
+				if _, err := w.Write(bz); err != nil {
+					log.Printf("failed to write mjpeg image: %s", err)
+					return
+				}
+
+				// close boundary
+				if _, err := io.WriteString(w, "\n"); err != nil {
+					log.Printf("failed to write boundary: %s", err)
+					return
+				}
+			}
+			time.Sleep(time.Second)
+			nbBlocks++
+		}
+	})
+
+	http.ListenAndServe(":8080", nil)
+	return nil
+}
+
+func generateLineData(data []int) []opts.LineData {
+	items := make([]opts.LineData, len(data))
+	for i, v := range data {
+		items[i] = opts.LineData{Value: v}
+	}
+	return items
+}
+
+func genChartFile(nbBlocks int) (string, error) {
 	f, err := os.CreateTemp("", "chart*.html")
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer f.Close()
 	page := components.NewPage()
 	page.PageTitle = "Deposit throttling"
 	page.AddCharts(
-		newLineChart(100),
+		newLineChart(nbBlocks),
 	)
 	page.Render(f)
-	fmt.Printf("Charts rendered in %s\n", f.Name())
-	browser.OpenFile(f.Name())
-	return nil
+	// browser.OpenFile(f.Name())
+	return f.Name(), nil
 }
 
 func newLineChart(nbBlocks int) components.Charter {
 	// create a new line instance
 	line := charts.NewLine()
+	line.Animation = false
 	// set some global options like Title/Legend/ToolTip or anything else
 	line.SetGlobalOptions(
-		charts.WithDataZoomOpts(opts.DataZoom{XAxisIndex: 0, Start: 0, End: 100, Type: "slider"}),
+		// charts.WithDataZoomOpts(opts.DataZoom{XAxisIndex: 0, Start: 0, End: 100, Type: "slider"}),
 		charts.WithInitializationOpts(opts.Initialization{
-			Theme:  types.ThemeWesteros,
+			// Theme:  types.ThemeWesteros,
 			Height: "700px",
 		}),
 		charts.WithTitleOpts(opts.Title{
@@ -150,4 +213,33 @@ func generateDeposits(numProposals []opts.LineData) []opts.LineData {
 		items[i].Value = v
 	}
 	return items
+}
+
+func toPNG(ctx context.Context, file string) ([]byte, error) {
+	// get full path of file
+	abs, _ := filepath.Abs(file)
+
+	// create context
+	ctx, cancel := chromedp.NewContext(
+		ctx,
+		// chromedp.WithDebugf(log.Printf),
+	)
+	defer cancel()
+
+	// screenshot buffer
+	var buf []byte
+
+	// capture entire browser viewport, returning png with quality=100
+	task := chromedp.Tasks{
+		// use file:// for a local file
+		chromedp.Navigate("file://" + abs),
+		// set resolution for screenshot
+		chromedp.EmulateViewport(1200, 800),
+		// take screenshot
+		chromedp.FullScreenshot(&buf, 100),
+	}
+
+	// run tasks
+	err := chromedp.Run(ctx, task)
+	return buf, err
 }
