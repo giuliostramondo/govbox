@@ -27,30 +27,42 @@ option = {
     }
   },
   xAxis: {
-		 name: 'Block height',
-    // type: 'value',
+		name: 'Block height',
   },
   yAxis: [
 		{
 			name: 'Deposit',
     	type: 'value',
-    	  boundaryGap: [0, '25%'],
-    	// splitLine: {
-    	  // show: false
-    	// }
+    	boundaryGap: [0, '25%'],
     },
 		{
 			name: 'Num proposals',
-    	type: 'value',
-			Show: false,
 			min: 0,
 			max: 6,
-    	// splitLine: {
-    	  // show: false
-    	// }
     },
 	],
+	legend: {
+    data: ['Num proposals', 'Deposit'],
+  }
 };
+
+function reset() {
+	deposits = [];
+	numProposals = [];
+	document.getElementById('numProposals').value = 0;
+}
+
+let paused = false
+
+function pauseResume() {
+	if (paused) {
+		paused=false
+		document.getElementById('pauseResume').innerHTML='Pause'
+	} else {
+		document.getElementById('pauseResume').innerHTML='Resume'
+		paused=true
+	}
+}
 
 function computeDeposit(n) {
 	let lastDeposit = defaultDeposit
@@ -64,10 +76,13 @@ function computeDeposit(n) {
 		beta = -1
 	}
 	let k = parseFloat(document.getElementById('k').value);
-  let v = (n - N + beta) ** (1/k)
+  let v = (Math.abs(n - N + beta)) ** (1/k)
 
-	D = lastDeposit * (1 + alpha * v)
-	console.log("D="+D)
+	let D = lastDeposit * (1 + alpha * v)
+	console.log(`lastDeposit=${lastDeposit} alpha=${alpha} beta=${beta} k=${k} n=${n}`)
+	console.log(`n - N + beta = ${n - N + beta}`)
+	console.log(`(Math.abs(n - N + beta)) ** (1/k) = ${v}`)
+	console.log(`alpha * (Math.abs(n - N + beta)) ** (1/k) = ${alpha * v}`)
 	if (D < defaultDeposit) {
 		D = defaultDeposit
 	}
@@ -75,6 +90,9 @@ function computeDeposit(n) {
 }
 
 setInterval(function () {
+	if (paused) {
+		return
+	}
 	nbBlocks++
 	n = parseInt(document.getElementById('numProposals').value);
   // deposits.shift();
@@ -86,11 +104,13 @@ setInterval(function () {
 			{
     	  type: 'line',
     	  data: deposits,
+				symbolSize: 3,
     	},
     	{
     	  type: 'line',
     	  data: numProposals,
 				yAxisIndex: 1,
+				symbolSize: 3,
     	}
     ]
   });
