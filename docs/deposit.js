@@ -83,6 +83,8 @@ function computeDeposit(n) {
 	console.log(`n - N + beta = ${n - N + beta}`)
 	console.log(`(Math.abs(n - N + beta)) ** (1/k) = ${v}`)
 	console.log(`alpha * (Math.abs(n - N + beta)) ** (1/k) = ${alpha * v}`)
+	console.log(`----> D=${D}`)
+	console.log('***********************************')
 	if (D < defaultDeposit) {
 		D = defaultDeposit
 	}
