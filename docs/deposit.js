@@ -49,6 +49,7 @@ option = {
 function reset() {
 	deposits = [];
 	numProposals = [];
+	nbBlocks=0;
 	document.getElementById('numProposals').value = 0;
 }
 
