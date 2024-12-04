@@ -71,19 +71,17 @@ function computeDeposit(n) {
 		lastDeposit = deposits[deposits.length-1].value[1]
 	}
 	let alpha = parseFloat(document.getElementById('alphaUp').value);
-	let beta = 0
 	if (n <= N) {
 		alpha = parseFloat(document.getElementById('alphaDown').value);
-		beta = -1
 	}
 	let k = parseFloat(document.getElementById('k').value);
-  let v = (Math.abs(n - N + beta)) ** (1/k)
+  let v = (Math.abs(n - N)) ** (1/k)
 
 	let D = lastDeposit * (1 + alpha * v)
-	console.log(`lastDeposit=${lastDeposit} alpha=${alpha} beta=${beta} k=${k} n=${n}`)
-	console.log(`n - N + beta = ${n - N + beta}`)
-	console.log(`(Math.abs(n - N + beta)) ** (1/k) = ${v}`)
-	console.log(`alpha * (Math.abs(n - N + beta)) ** (1/k) = ${alpha * v}`)
+	console.log(`lastDeposit=${lastDeposit} alpha=${alpha} k=${k} n=${n}`)
+	console.log(`n - N = ${n - N}`)
+	console.log(`(Math.abs(n - N)) ** (1/k) = ${v}`)
+	console.log(`alpha * (Math.abs(n - N)) ** (1/k) = ${alpha * v}`)
 	console.log(`----> D=${D}`)
 	console.log('***********************************')
 	if (D < defaultDeposit) {
