@@ -28,7 +28,7 @@ var (
 	registry    = codectypes.NewInterfaceRegistry()
 	marshaler   jsonpb.Marshaler
 	unmarshaler jsonpb.Unmarshaler
-	cdc         codec.JSONCodec
+	cdc         codec.Codec
 )
 
 func init() {

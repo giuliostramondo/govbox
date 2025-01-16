@@ -51,6 +51,7 @@ func main() {
 			tallyCmd(), accountsCmd(), genesisCmd(), autoStakingCmd(),
 			distributionCmd(), top20Cmd(), propJSONCmd(),
 			signTxCmd(), vestingCmd(), depositThrottlingCmd(),
+			tallyGenesisCmd(),
 		},
 		Exec: func(ctx context.Context, args []string) error {
 			return flag.ErrHelp
@@ -59,6 +60,27 @@ func main() {
 	err := rootCmd.ParseAndRun(context.Background(), os.Args[1:])
 	if err != nil && err != flag.ErrHelp {
 		log.Fatal(err)
+	}
+}
+
+func tallyGenesisCmd() *ffcli.Command {
+	fs := flag.NewFlagSet("benchTally", flag.ContinueOnError)
+	numVals := fs.Int("numVals", 1, "number of validators")
+	numDels := fs.Int("numDels", 0, "number of delegators")
+	numGovs := fs.Int("numGovs", 0, "number of governors")
+	return &ffcli.Command{
+		Name:       "tally-genesis",
+		ShortUsage: "govbox tally-genesis <genesis.json>",
+		ShortHelp: `Generate a genesis with validators, delegators, governors, delegations, votes and one proposal.
+Used to evaluate the performance of the governance tally.`,
+		FlagSet: fs,
+		Exec: func(ctx context.Context, args []string) error {
+			if len(args) == 0 {
+				return flag.ErrHelp
+			}
+			fs.Parse(args)
+			return tallyGenesis(ctx, fs.Arg(0), *numVals, *numDels, *numGovs)
+		},
 	}
 }
 
