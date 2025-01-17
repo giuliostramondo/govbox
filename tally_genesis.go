@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cosmos/cosmos-sdk/testutil/sims"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	"github.com/atomone-hub/atomone/cmd/atomoned/cmd"
 	"github.com/atomone-hub/atomone/x/gov"
 	govkeeper "github.com/atomone-hub/atomone/x/gov/keeper"
 	govtypes "github.com/atomone-hub/atomone/x/gov/types"
@@ -19,10 +17,12 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
-	"github.com/cosmos/cosmos-sdk/store"
-
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/cosmos/cosmos-sdk/testutil/sims"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
@@ -31,7 +31,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
-func tallyGenesis(goCtx context.Context, genesisFile string, numVals, numDels, numGovs int) error {
+func tallyGenesis(goCtx context.Context, genesisFile, nodePubkey string, numVals, numDels, numGovs int) error {
+	cmd.InitSDKConfig()
 	var (
 		addrs     = sims.CreateRandomAccounts(numVals + numDels + numGovs)
 		valAddrs  = sims.ConvertAddrsToValAddrs(addrs[:numVals])
@@ -51,6 +52,16 @@ func tallyGenesis(goCtx context.Context, genesisFile string, numVals, numDels, n
 		)
 		minDeposit = sdk.NewCoins(sdk.NewInt64Coin("uatone", 512_000_000))
 	)
+	// unmarshal node pubkey
+	var nodePK cryptotypes.PubKey
+	err := cdc.UnmarshalInterfaceJSON([]byte(nodePubkey), &nodePK)
+	if err != nil {
+		panic(err)
+	}
+	// Set validator node to the first validator
+	addrs[0] = sdk.AccAddress(nodePK.Address())
+	valAddrs[0] = sdk.ValAddress(addrs[0])
+
 	// create keepers and msgServers
 	ctx := newContext(goCtx, keys)
 	govAcct := authtypes.NewEmptyModuleAccount(govtypes.ModuleName)
@@ -64,7 +75,6 @@ func tallyGenesis(goCtx context.Context, genesisFile string, numVals, numDels, n
 	stakingGenesis := stakingtypes.DefaultGenesisState()
 	stakingGenesis.Params.BondDenom = "uatone"
 	sk.InitGenesis(ctx, stakingGenesis)
-	ak.SetModuleAccount(ctx, govAcct)
 	gk := govkeeper.NewKeeper(cdc, keys[govtypes.StoreKey], ak, bk, sk, nil, govtypes.DefaultConfig(), govAddr)
 	govGenesis := govv1types.DefaultGenesisState()
 	govGenesis.Params.MinDeposit = minDeposit
@@ -74,7 +84,7 @@ func tallyGenesis(goCtx context.Context, genesisFile string, numVals, numDels, n
 	// fill bank balances
 	amt := sdk.NewCoins(sdk.NewInt64Coin("uatone", 1_000_000_000_000))
 	// mint amt * number of accounts
-	err := bk.MintCoins(ctx, banktypes.ModuleName, amt.MulInt(sdk.NewInt(int64(len(addrs)))))
+	err = bk.MintCoins(ctx, banktypes.ModuleName, amt.MulInt(sdk.NewInt(int64(len(addrs)))))
 	if err != nil {
 		panic(err)
 	}
@@ -94,7 +104,14 @@ func tallyGenesis(goCtx context.Context, genesisFile string, numVals, numDels, n
 			MaxRate:       sdk.MustNewDecFromStr("0.2"),
 			MaxChangeRate: sdk.MustNewDecFromStr("0.01"),
 		}
-		pk := ed25519.GenPrivKey().PubKey()
+		var pk cryptotypes.PubKey
+		if i == 0 {
+			// first validator is our operator, use the pk from parameters
+			pk = nodePK
+		} else {
+			// other validators get a random pk
+			pk = ed25519.GenPrivKey().PubKey()
+		}
 		msg, err := stakingtypes.NewMsgCreateValidator(valOpAddr, pk,
 			sdk.NewInt64Coin("uatone", 1_000_000), description, commissionRates,
 			sdk.NewInt(1))
@@ -142,20 +159,22 @@ func tallyGenesis(goCtx context.Context, genesisFile string, numVals, numDels, n
 		}
 	}
 	// delegate to governors
-	govIdx := 0
-	for j, d := range delAddrs {
-		if j > numDels/2 {
-			break // only half of the delegators delegate to a governor
-		}
-		msg := govv1types.NewMsgDelegateGovernor(d, govtypes.GovernorAddress(govAddrs[govIdx]))
-		_, err := govMsgServer.DelegateGovernor(ctx, msg)
-		if err != nil {
-			panic(err)
-		}
-		// next govenoer
-		govIdx++
-		if govIdx >= numGovs {
-			govIdx = 0
+	if numGovs > 0 {
+		govIdx := 0
+		for j, d := range delAddrs {
+			if j > numDels/2 {
+				break // only half of the delegators delegate to a governor
+			}
+			msg := govv1types.NewMsgDelegateGovernor(d, govtypes.GovernorAddress(govAddrs[govIdx]))
+			_, err := govMsgServer.DelegateGovernor(ctx, msg)
+			if err != nil {
+				panic(err)
+			}
+			// next govenoer
+			govIdx++
+			if govIdx >= numGovs {
+				govIdx = 0
+			}
 		}
 	}
 
@@ -215,6 +234,10 @@ func tallyGenesis(goCtx context.Context, genesisFile string, numVals, numDels, n
 	appState["auth"], err = cdc.MarshalJSON(ak.ExportGenesis(ctx))
 	if err != nil {
 		return fmt.Errorf("marshal auth genesis: %w", err)
+	}
+	appState["staking"], err = cdc.MarshalJSON(sk.ExportGenesis(ctx))
+	if err != nil {
+		return fmt.Errorf("marshal staking genesis: %w", err)
 	}
 	genesisState.AppState, err = json.MarshalIndent(appState, "", "  ")
 	if err != nil {

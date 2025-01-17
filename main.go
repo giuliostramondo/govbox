@@ -64,10 +64,11 @@ func main() {
 }
 
 func tallyGenesisCmd() *ffcli.Command {
-	fs := flag.NewFlagSet("benchTally", flag.ContinueOnError)
+	fs := flag.NewFlagSet("tallyGenesis", flag.ContinueOnError)
 	numVals := fs.Int("numVals", 1, "number of validators")
 	numDels := fs.Int("numDels", 0, "number of delegators")
 	numGovs := fs.Int("numGovs", 0, "number of governors")
+	nodePubkey := fs.String("nodePubkey", "", "pubkey of the validator node that will run the genesis")
 	return &ffcli.Command{
 		Name:       "tally-genesis",
 		ShortUsage: "govbox tally-genesis <genesis.json>",
@@ -75,11 +76,19 @@ func tallyGenesisCmd() *ffcli.Command {
 Used to evaluate the performance of the governance tally.`,
 		FlagSet: fs,
 		Exec: func(ctx context.Context, args []string) error {
-			if len(args) == 0 {
+			if err := fs.Parse(args); err != nil {
+				return err
+			}
+			if fs.NArg() != 1 {
 				return flag.ErrHelp
 			}
-			fs.Parse(args)
-			return tallyGenesis(ctx, fs.Arg(0), *numVals, *numDels, *numGovs)
+			if *numVals < 1 {
+				return fmt.Errorf("numVals must be greater than 0")
+			}
+			if *nodePubkey == "" {
+				return fmt.Errorf("nodePubkey flag must be provided")
+			}
+			return tallyGenesis(ctx, fs.Arg(0), *nodePubkey, *numVals, *numDels, *numGovs)
 		},
 	}
 }
