@@ -68,7 +68,8 @@ func tallyGenesisCmd() *ffcli.Command {
 	numVals := fs.Int("numVals", 1, "number of validators")
 	numDels := fs.Int("numDels", 0, "number of delegators")
 	numGovs := fs.Int("numGovs", 0, "number of governors")
-	nodePubkey := fs.String("nodePubkey", "", "pubkey of the validator node that will run the genesis")
+	nodeAddr := fs.String("nodeAddr", "", "bech32 address of the validator node that will run the genesis")
+	nodeConsPubkey := fs.String("nodeConsPubkey", "", "consensus pubkey of the validator node that will run the genesis")
 	return &ffcli.Command{
 		Name:       "tally-genesis",
 		ShortUsage: "govbox tally-genesis <genesis.json>",
@@ -85,10 +86,13 @@ Used to evaluate the performance of the governance tally.`,
 			if *numVals < 1 {
 				return fmt.Errorf("numVals must be greater than 0")
 			}
-			if *nodePubkey == "" {
-				return fmt.Errorf("nodePubkey flag must be provided")
+			if *nodeAddr == "" {
+				return fmt.Errorf("nodeAddr flag must be provided")
 			}
-			return tallyGenesis(ctx, fs.Arg(0), *nodePubkey, *numVals, *numDels, *numGovs)
+			if *nodeConsPubkey == "" {
+				return fmt.Errorf("nodeConsPubkey flag must be provided")
+			}
+			return tallyGenesis(ctx, fs.Arg(0), *nodeAddr, *nodeConsPubkey, *numVals, *numDels, *numGovs)
 		},
 	}
 }

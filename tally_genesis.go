@@ -31,7 +31,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
-func tallyGenesis(goCtx context.Context, genesisFile, nodePubkey string, numVals, numDels, numGovs int) error {
+func tallyGenesis(goCtx context.Context, genesisFile, nodeAddr string, nodeConsPubkey string, numVals, numDels, numGovs int) error {
 	cmd.InitSDKConfig()
 	var (
 		addrs     = sims.CreateRandomAccounts(numVals + numDels + numGovs)
@@ -54,12 +54,12 @@ func tallyGenesis(goCtx context.Context, genesisFile, nodePubkey string, numVals
 	)
 	// unmarshal node pubkey
 	var nodePK cryptotypes.PubKey
-	err := cdc.UnmarshalInterfaceJSON([]byte(nodePubkey), &nodePK)
+	err := cdc.UnmarshalInterfaceJSON([]byte(nodeConsPubkey), &nodePK)
 	if err != nil {
 		panic(err)
 	}
 	// Set validator node to the first validator
-	addrs[0] = sdk.AccAddress(nodePK.Address())
+	addrs[0] = sdk.MustAccAddressFromBech32(nodeAddr)
 	valAddrs[0] = sdk.ValAddress(addrs[0])
 
 	// create keepers and msgServers
@@ -81,15 +81,31 @@ func tallyGenesis(goCtx context.Context, genesisFile, nodePubkey string, numVals
 	gov.InitGenesis(ctx, ak, bk, gk, govGenesis)
 	govMsgServer := govkeeper.NewMsgServerImpl(gk)
 
-	// fill bank balances
-	amt := sdk.NewCoins(sdk.NewInt64Coin("uatone", 1_000_000_000_000))
-	// mint amt * number of accounts
-	err = bk.MintCoins(ctx, banktypes.ModuleName, amt.MulInt(sdk.NewInt(int64(len(addrs)))))
+	// fill all address bank balances with addrAmt
+	var (
+		addrAmt     = sdk.NewInt(1_000_000_000_000)
+		addrBalance = sdk.NewCoins(sdk.NewCoin("uatone", addrAmt))
+		// mint amt * number of addresses
+		totalAddrAmt = addrAmt.Mul(sdk.NewInt(int64(len(addrs))))
+		// mint 3 x totalAddrAmt for the node so it can run the chain alone
+		nodeAmt       = totalAddrAmt.Mul(sdk.NewInt(3))
+		nodeBalance   = sdk.NewCoins(sdk.NewCoin("uatone", nodeAmt))
+		supplyAmt     = totalAddrAmt.Add(nodeAmt)
+		supplyBalance = sdk.NewCoins(sdk.NewCoin("uatone", supplyAmt))
+	)
+	err = bk.MintCoins(ctx, banktypes.ModuleName, supplyBalance)
 	if err != nil {
 		panic(err)
 	}
 	// send amt to each account
-	for _, a := range addrs {
+	for i, a := range addrs {
+		var amt sdk.Coins
+		if i == 0 {
+			// first address is the node
+			amt = nodeBalance
+		} else {
+			amt = addrBalance
+		}
 		err := bk.SendCoinsFromModuleToAccount(ctx, banktypes.ModuleName, a, amt)
 		if err != nil {
 			panic(err)
@@ -104,16 +120,22 @@ func tallyGenesis(goCtx context.Context, genesisFile, nodePubkey string, numVals
 			MaxRate:       sdk.MustNewDecFromStr("0.2"),
 			MaxChangeRate: sdk.MustNewDecFromStr("0.01"),
 		}
-		var pk cryptotypes.PubKey
+		var (
+			pk             cryptotypes.PubKey
+			selfDelegation sdk.Coin
+		)
 		if i == 0 {
 			// first validator is our operator, use the pk from parameters
 			pk = nodePK
+			// use full node balance for self delegation so it got >67% of voting power
+			selfDelegation = sdk.NewCoin("uatone", nodeAmt)
 		} else {
 			// other validators get a random pk
 			pk = ed25519.GenPrivKey().PubKey()
+			selfDelegation = sdk.NewInt64Coin("uatone", 1_000_000)
 		}
 		msg, err := stakingtypes.NewMsgCreateValidator(valOpAddr, pk,
-			sdk.NewInt64Coin("uatone", 1_000_000), description, commissionRates,
+			selfDelegation, description, commissionRates,
 			sdk.NewInt(1))
 		if err != nil {
 			panic(err)
@@ -179,7 +201,7 @@ func tallyGenesis(goCtx context.Context, genesisFile, nodePubkey string, numVals
 	}
 
 	// create proposal
-	msg, err := govv1types.NewMsgSubmitProposal(nil, minDeposit, addrs[0].String(), "", "my prop", "")
+	msg, err := govv1types.NewMsgSubmitProposal(nil, minDeposit, addrs[1].String(), "", "my prop", "")
 	if err != nil {
 		panic(err)
 	}
