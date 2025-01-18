@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/atomone-hub/atomone/cmd/atomoned/cmd"
 	"github.com/atomone-hub/atomone/x/gov"
@@ -283,7 +284,8 @@ func newContext(ctx context.Context, keys map[string]*storetypes.KVStoreKey) sdk
 	if err != nil {
 		panic(err)
 	}
-	return sdk.NewContext(cms, tmproto.Header{}, false, log.NewNopLogger()).WithContext(ctx)
+	return sdk.NewContext(cms, tmproto.Header{}, false, log.NewNopLogger()).
+		WithContext(ctx).WithBlockTime(time.Now())
 }
 
 func convertAddrsToGovAddrs(addrs []sdk.AccAddress) []govtypes.GovernorAddress {
