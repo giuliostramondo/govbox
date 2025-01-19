@@ -158,7 +158,11 @@ func tallyGenesis(goCtx context.Context, genesisFile, nodeAddr string, nodeConsP
 		numDelegsPerDelegator = 5
 		delAmt                = sdk.NewInt64Coin("uatone", 900_000_000_000/int64(numDelegsPerDelegator)) // deleg 90% of balance
 	)
-	for _, a := range append(delAddrs, govAddrs...) {
+	// first do governors delegation to validators
+	// NOTE: for performance reason, it is better to first create and delegate to
+	// governors rather than doing all the validator delegations, because
+	// DelegateGovernor has bad perf when delegations already exists.
+	for _, a := range govAddrs {
 		for j := 0; j < numDelegsPerDelegator; j++ {
 			msg := stakingtypes.NewMsgDelegate(a, sdk.ValAddress(valAddrs[valIdx]), delAmt)
 			_, err := stakingMsgServer.Delegate(ctx, msg)
@@ -184,8 +188,8 @@ func tallyGenesis(goCtx context.Context, genesisFile, nodeAddr string, nodeConsP
 	// delegate to governors
 	if numGovs > 0 {
 		govIdx := 0
-		for j, d := range delAddrs {
-			if j > numDels/2 {
+		for i, d := range delAddrs {
+			if i > numDels/2 {
 				break // only half of the delegators delegate to a governor
 			}
 			msg := govv1types.NewMsgDelegateGovernor(d, govtypes.GovernorAddress(govAddrs[govIdx]))
@@ -197,6 +201,21 @@ func tallyGenesis(goCtx context.Context, genesisFile, nodeAddr string, nodeConsP
 			govIdx++
 			if govIdx >= numGovs {
 				govIdx = 0
+			}
+		}
+	}
+
+	// second all the other validator delegations
+	for _, a := range delAddrs {
+		for j := 0; j < numDelegsPerDelegator; j++ {
+			msg := stakingtypes.NewMsgDelegate(a, sdk.ValAddress(valAddrs[valIdx]), delAmt)
+			_, err := stakingMsgServer.Delegate(ctx, msg)
+			if err != nil {
+				panic(err)
+			}
+			valIdx++ // next delegation to next validator
+			if valIdx >= numVals {
+				valIdx = 0
 			}
 		}
 	}
