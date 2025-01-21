@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"slices"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
@@ -51,7 +52,7 @@ func main() {
 			tallyCmd(), accountsCmd(), genesisCmd(), autoStakingCmd(),
 			distributionCmd(), top20Cmd(), propJSONCmd(),
 			signTxCmd(), vestingCmd(), depositThrottlingCmd(),
-			tallyGenesisCmd(),
+			tallyGenesisCmd(), shrinkVotesCmd(),
 		},
 		Exec: func(ctx context.Context, args []string) error {
 			return flag.ErrHelp
@@ -60,6 +61,24 @@ func main() {
 	err := rootCmd.ParseAndRun(context.Background(), os.Args[1:])
 	if err != nil && err != flag.ErrHelp {
 		log.Fatal(err)
+	}
+}
+
+func shrinkVotesCmd() *ffcli.Command {
+	return &ffcli.Command{
+		Name:       "shrink-votes",
+		ShortUsage: "govbox shrink-votes <genesis.json> <high>",
+		ShortHelp:  "Outputs a genesis where only the first <high> votes are kept from <genesis.json>",
+		Exec: func(ctx context.Context, args []string) error {
+			if len(args) != 2 {
+				return flag.ErrHelp
+			}
+			high, err := strconv.Atoi(args[1])
+			if err != nil {
+				return err
+			}
+			return shrinkVotes(ctx, args[0], high)
+		},
 	}
 }
 
@@ -73,7 +92,7 @@ func tallyGenesisCmd() *ffcli.Command {
 	return &ffcli.Command{
 		Name:       "tally-genesis",
 		ShortUsage: "govbox tally-genesis <genesis.json>",
-		ShortHelp: `Generate a genesis with validators, delegators, governors, delegations, votes and one proposal.
+		ShortHelp: `Outputs a genesis with validators, delegators, governors, delegations, votes and one proposal.
 Used to evaluate the performance of the governance tally.`,
 		FlagSet: fs,
 		Exec: func(ctx context.Context, args []string) error {
