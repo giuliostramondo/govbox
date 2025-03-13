@@ -396,7 +396,7 @@ func top20Cmd() *ffcli.Command {
 
 func propJSONCmd() *ffcli.Command {
 	fs := flag.NewFlagSet("propJSON", flag.ContinueOnError)
-	deposit := fs.String("deposit", "50000000ugovgen", "Proposal deposit (min=50,000,000ugovgen, max=5,000,000,000ugovgen)")
+	deposit := fs.String("deposit", "512000000uatone", "Proposal deposit")
 	return &ffcli.Command{
 		Name:       "propJSON",
 		ShortUsage: "govbox propJSON <path/to/proposal.md>",
@@ -421,10 +421,10 @@ func propJSONCmd() *ffcli.Command {
 			title = title[2:] // Remove the '# ' prefix
 
 			data := map[string]any{
-				"title":       title,
-				"description": string(bz),
-				"deposit":     *deposit,
-				"type":        "Text",
+				"title":    title,
+				"summary":  string(bz),
+				"deposit":  *deposit,
+				"metadata": "",
 			}
 			bz, err = json.MarshalIndent(data, "", "  ")
 			if err != nil {
