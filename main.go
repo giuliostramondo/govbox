@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/csv"
 	"encoding/json"
@@ -52,7 +53,7 @@ func main() {
 			tallyCmd(), accountsCmd(), genesisCmd(), autoStakingCmd(),
 			distributionCmd(), top20Cmd(), propJSONCmd(),
 			signTxCmd(), vestingCmd(), depositThrottlingCmd(),
-			tallyGenesisCmd(), shrinkVotesCmd(),
+			tallyGenesisCmd(), shrinkVotesCmd(), gnoAirdropCmd(),
 		},
 		Exec: func(ctx context.Context, args []string) error {
 			return flag.ErrHelp
@@ -480,6 +481,61 @@ func depositThrottlingCmd() *ffcli.Command {
 		ShortHelp:  "Show chart of deposit throttling",
 		Exec: func(ctx context.Context, args []string) error {
 			return depositThrottling()
+		},
+	}
+}
+
+func gnoAirdropCmd() *ffcli.Command {
+	fs := flag.NewFlagSet("gno-airdrop", flag.ContinueOnError)
+	return &ffcli.Command{
+		Name:    "gno-airdrop",
+		FlagSet: fs,
+		Exec: func(ctx context.Context, args []string) error {
+			if err := fs.Parse(args); err != nil {
+				return err
+			}
+			if fs.NArg() != 1 {
+				return flag.ErrHelp
+			}
+			f, err := os.Open(fs.Arg(0))
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+			// scan file line by line
+			scanner := bufio.NewScanner(f)
+			supply := sdk.ZeroInt()
+			type entry struct {
+				Addr  string
+				Alloc sdk.Coin
+			}
+			var a []entry
+			for scanner.Scan() {
+				line := scanner.Text()
+				items := strings.Split(line, "=")
+				addr := items[0]
+				alloc, err := sdk.ParseCoinNormalized(items[1])
+				if err != nil {
+					panic(err)
+				}
+				supply = supply.Add(alloc.Amount)
+				a = append(a, entry{addr, alloc})
+			}
+
+			expSupply := sdk.MustNewDecFromStr("700000000000000")
+			fact := expSupply.Quo(supply.ToLegacyDec())
+			newSup := sdk.ZeroInt()
+			for _, e := range a {
+				newAmt := e.Alloc.Amount.ToLegacyDec().Mul(fact)
+				newAlloc := sdk.NewCoin(e.Alloc.Denom, newAmt.RoundInt())
+				fmt.Printf("%s=%s\n", e.Addr, newAlloc)
+				newSup = newSup.Add(newAlloc.Amount)
+			}
+			fmt.Println("SUPPLY", supply)
+			fmt.Println("FACT", fact)
+			fmt.Println("SUPPLY", newSup)
+
+			return nil
 		},
 	}
 }
