@@ -39,6 +39,8 @@ $$0 \lt \alpha_{down} \lt 1$$
 $$0 \lt \alpha_{up} \lt 1$$
 $$\alpha_{down} \lt \alpha_{up}$$
 
+[See formula in the ADR](https://github.com/atomone-hub/atomone/blob/8561b1e839bf5ac1b27d83b753f89772192502b7/docs/architecture/adr-003-governance-proposal-deposit-auto-throttler.md#decision)
+
 The mechanism updates dynamically:
 
 - When proposals enter or exit the voting/deposit period.
