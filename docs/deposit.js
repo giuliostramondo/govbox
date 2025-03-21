@@ -2,7 +2,6 @@ var chartDom = document.getElementById('main');
 var myChart = echarts.init(chartDom);
 var option;
 
-// TODO add increase in block production
 let nbBlocks = 0
 let defaultDeposit=250
 let deposits = [];
@@ -95,16 +94,23 @@ function computeDeposit(n) {
 	return D
 }
 
-setInterval(function () {
-	if (paused) {
-		return
-	}
+function pushBlock(n) {
 	nbBlocks++
-	n = parseInt(document.getElementById('numProposals').value);
   // deposits.shift();
   deposits.push({ value:[ nbBlocks, computeDeposit(n) ] });
 	// numProposals.shift();
 	numProposals.push({ value:[ nbBlocks, n ] })
+}
+
+setInterval(function () {
+	if (paused) {
+		return
+	}
+	blockWindow = parseInt(document.getElementById('blockWindow').value);
+	n = parseInt(document.getElementById('numProposals').value);
+	for (let i = 0; i < blockWindow; i++) {
+		pushBlock(n)
+	}
   myChart.setOption({
     series: [
 			{
