@@ -2,11 +2,11 @@ var chartDom = document.getElementById('main');
 var myChart = echarts.init(chartDom);
 var option;
 
+// TODO add increase in block production
 let nbBlocks = 0
 let defaultDeposit=250
 let deposits = [];
 let numProposals = []
-let N = 2
 for (var i = 0; i < nbBlocks; i++) {
   deposits.push({value:[i,defaultDeposit]});
   numProposals.push({value:[i,0]});
@@ -70,6 +70,7 @@ function computeDeposit(n) {
 	if (deposits.length>0) {
 		lastDeposit = deposits[deposits.length-1].value[1]
 	}
+	let N = parseFloat(document.getElementById('N').value)
 	let alpha = parseFloat(document.getElementById('alphaUp').value);
 	if (n <= N) {
 		alpha = parseFloat(document.getElementById('alphaDown').value);
