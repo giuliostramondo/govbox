@@ -38,7 +38,7 @@ option = {
 		{
 			name: 'Num proposals',
 			min: 0,
-			max: 6,
+			max: 8,
     },
 	],
 	legend: {

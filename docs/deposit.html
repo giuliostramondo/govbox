@@ -1,24 +1,36 @@
 <html>
 	<head>
 		<script src="https://go-echarts.github.io/go-echarts-assets/assets/echarts.min.js"></script>
+		<style>
+        * {
+            font-size: 24px; /* Set the desired font size */
+        }
+    </style>
 	</head>
 	<body>
 		<img src="dyn-deposit-formula.png">
 		<table border=0>
-			<tr><td>NumProposals</td><td><input type=number id="numProposals" min=0 value=0 /></td></tr>
-			<tr><td>Alpha UP<td><input id="alphaUp" type=number value='0.05' min=0 max=1 step='0.01' /></td></tr>
-			<tr><td>Alpha DOWN<td><input id="alphaDown" type=number value='0.025' min=0 max=1 step='0.01' /></td></tr>
-			<tr><td>k</td><td><input type=number id="k" value='2' min=1 step='1' /></td></tr>
 			<tr>
-				<td><button onclick='reset()'>Reset</button></td>
-				<td><button id='pauseResume' onclick='pauseResume()'>Pause</button></td>
+				<td>
+					<table>
+						<tr><td>NumProposals</td><td><input type=number id="numProposals" min=0 value=0 /></td></tr>
+						<tr><td>Alpha UP<td><input id="alphaUp" type=number value='0.05' min=0 max=1 step='0.01' /></td></tr>
+						<tr><td>Alpha DOWN<td><input id="alphaDown" type=number value='0.025' min=0 max=1 step='0.01' /></td></tr>
+						<tr><td>k</td><td><input type=number id="k" value='2' min=1 step='1' /></td></tr>
+						<tr>
+							<td><button onclick='reset()'>Reset</button></td>
+							<td><button id='pauseResume' onclick='pauseResume()'>Pause</button></td>
+						</tr>
+					</table>
+				</td>
+				<td>
+					<style> .container {display: flex;justify-content: center;align-items: center;} .item {margin: auto;} </style>
+					<div class="container">
+						<div class="item" id="main" style="width:1200px;height:700px;"></div>
+					</div>
+				</td>
 			</tr>
 		</table>
-		<br/>
-		<style> .container {display: flex;justify-content: center;align-items: center;} .item {margin: auto;} </style>
-		<div class="container">
-			<div class="item" id="main" style="width:1200px;height:700px;"></div>
-		</div>
 
 		<script src="deposit.js" ></script>
 	</body>
