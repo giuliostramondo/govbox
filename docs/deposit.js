@@ -3,11 +3,11 @@ var myChart = echarts.init(chartDom);
 var option;
 
 let nbBlocks = 0
-let defaultDeposit=250
+let baseDeposit = parseFloat(document.getElementById('baseDeposit').value);
 let deposits = [];
 let numProposals = []
 for (var i = 0; i < nbBlocks; i++) {
-  deposits.push({value:[i,defaultDeposit]});
+  deposits.push({value:[i,baseDeposit]});
   numProposals.push({value:[i,0]});
 }
 option = {
@@ -65,7 +65,8 @@ function pauseResume() {
 }
 
 function computeDeposit(n) {
-	let lastDeposit = defaultDeposit
+	let baseDeposit = parseFloat(document.getElementById('baseDeposit').value);
+	let lastDeposit = baseDeposit
 	if (deposits.length>0) {
 		lastDeposit = deposits[deposits.length-1].value[1]
 	}
@@ -88,8 +89,8 @@ function computeDeposit(n) {
 	console.log(`sign * alpha * (Math.abs(n - N)) ** (1/k) = ${sign * alpha * v}`)
 	console.log(`----> D=${D}`)
 	console.log('***********************************')
-	if (D < defaultDeposit) {
-		D = defaultDeposit
+	if (D < baseDeposit) {
+		D = baseDeposit
 	}
 	return D
 }
