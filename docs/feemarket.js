@@ -20,8 +20,8 @@ option = {
     trigger: 'axis',
     formatter: function (params) {
 			return 'height='+ params[0].data.value[0] +
-				' n=' + params[1].data.value[1] +
-				' D=' + params[0].data.value[1]
+				' Block Size=' + params[1].data.value[1] +
+				' Gas Price=' + params[0].data.value[1]
     },
     axisPointer: {
       animation: false
