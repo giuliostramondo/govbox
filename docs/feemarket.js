@@ -114,8 +114,17 @@ function computeFee(n) {
 	console.log(`currentBlockSize = ${currentBlockSize}`)
 	console.log(`targetBlockSize = ${targetBlockSize}`)
 
-
-	let F = lastFee * (1 + (newLearningRate * (currentBlockSize - targetBlockSize))/targetBlockSize );//TODO + delta * netGasDelta(window);
+	let netGasDelta = 0;
+	let targetBlockUtilization = targetBlockSize/maxBlockSize;
+	for (var i = beginningOfWindow;
+		i < Math.min(beginningOfWindow + window, blockSize.length-1);
+		i++)
+	{
+		let currentBlockUtilization = blockSize[i].value[1]/maxBlockSize;
+		netGasDelta += currentBlockUtilization - targetBlockUtilization;
+	}
+	console.log(`netGasDelta = ${netGasDelta}`)
+	let F = lastFee * (1 + (newLearningRate * (currentBlockSize - targetBlockSize))/targetBlockSize ) + delta * netGasDelta;
 	console.log(`lastFee = ${lastFee}`)
 	console.log(`currentFee = ${F}`)
 	
