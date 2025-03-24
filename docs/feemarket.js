@@ -51,7 +51,9 @@ function reset() {
 	fees = [];
 	blockSize = []
 	nbBlocks=0;
-	document.getElementById('currentBlockSize').value = 0;
+	document.getElementById('currentBlockSize').value = 3;
+	document.getElementById('targetBlockSize').value = 3;
+	document.getElementById('maxBlockSize').value = 6;
 }
 
 let paused = false
