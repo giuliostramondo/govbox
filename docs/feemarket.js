@@ -51,9 +51,18 @@ function reset() {
 	fees = [];
 	blockSize = []
 	nbBlocks=0;
+	document.getElementById('baseGasPrice').value = 250;
 	document.getElementById('currentBlockSize').value = 3;
 	document.getElementById('targetBlockSize').value = 3;
 	document.getElementById('maxBlockSize').value = 6;
+	document.getElementById('alpha').value = 0.05;
+	document.getElementById('beta').value = 0.025;
+	document.getElementById('window').value = 4;
+	document.getElementById('gamma').value = 1;
+	document.getElementById('maxLearningRate').value = 0.125;
+	document.getElementById('minLearningRate').value = 0.125;
+	document.getElementById('delta').value = 0.025;
+
 }
 
 let paused = false
@@ -73,6 +82,7 @@ function computeFee(n) {
 	if (fees.length>0) {
 		lastFee = fees[fees.length-1].value[1]
 	}
+	let baseGasPrice = parseFloat(document.getElementById('baseGasFee').value);
 	let alpha = parseFloat(document.getElementById('alpha').value);
 	let beta = parseFloat(document.getElementById('beta').value);
 	let delta = parseFloat(document.getElementById('delta').value);
@@ -130,7 +140,7 @@ function computeFee(n) {
 	console.log(`lastFee = ${lastFee}`)
 	console.log(`currentFee = ${F}`)
 	
-	return F
+	return Math.max(F,baseGasPrice);
 }
 
 setInterval(function () {
