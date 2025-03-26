@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="generator" content="HTML Tidy for HTML5 for Linux version 5.7.45">
+  <script src="https://go-echarts.github.io/go-echarts-assets/assets/echarts.min.js"></script>
+  <style>
+  * {
+    font-size: 24px; /* Set the desired font size */
+  }
+  .container {display: flex;justify-content: center;align-items: center;} .item {margin: auto;} 
+  </style>
+  <title></title>
+</head>
+<body>
+  <img src="dyn-deposit-formula.png">
+  <table border="0">
+    <tr>
+      <td>
+        <table>
+          <tr>
+            <td>NumProposals</td>
+            <td><input type="number" id="numProposals" min="0" value="0"></td>
+          </tr>
+          <tr>
+            <td>BlockWindow</td>
+            <td><input type="number" id="blockWindow" min="1" value="1"></td>
+          </tr>
+          <tr>
+            <td>N</td>
+            <td><input type="number" id="N" min="1" value="2"></td>
+          </tr>
+          <tr>
+            <td>BaseDeposit</td>
+            <td><input type="number" id="baseDeposit" min="1" value="250"></td>
+          </tr>
+          <tr>
+            <td>Alpha UP</td>
+            <td><input id="alphaUp" type="number" value='0.05' min="0" max="1" step='0.01'></td>
+          </tr>
+          <tr>
+            <td>Alpha DOWN</td>
+            <td><input id="alphaDown" type="number" value='0.025' min="0" max="1" step='0.01'></td>
+          </tr>
+          <tr>
+            <td>k</td>
+            <td><input type="number" id="k" value='2' min="1" step='1'></td>
+          </tr>
+          <tr>
+            <td><button onclick='reset()'>Reset</button></td>
+            <td><button id='pauseResume' onclick='pauseResume()'>Pause</button></td>
+          </tr>
+        </table>
+      </td>
+      <td>
+        <div class="container">
+          <div class="item" id="main" style="width:1200px;height:700px;"></div>
+        </div>
+      </td>
+    </tr>
+  </table>
+  <script src="depositv2.js"></script>
+</body>
+</html>
