@@ -14,7 +14,8 @@
 		  otherwise, & max(MinLearningRate, beta * currentLearningRate)
 		\end{cases}
 		$$</p>
-		<p>$$ newBaseFee := currentBaseFee * (1 + \frac{newLearningRate * (currentBlockSize - targetBlockSize)}{targetBlockSize}) + delta * netGasDelta(window) $$</p>
+		<p>$$ newBaseFeeAIMD := currentBaseFeeAIMD * (1 + \frac{newLearningRate * (currentBlockSize - targetBlockSize)}{targetBlockSize}) + delta * netGasDelta(window) $$</p>
+		<p>$$ newBaseFeeEIP1559 := currentBaseFeeEIP1559 * (1 + \frac{LearningRate(0.125) * (currentBlockSize - targetBlockSize)}{targetBlockSize}) $$</p>
 		<table border=0>
 			<tr><td>
 			<table border=0>

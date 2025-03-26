@@ -4,12 +4,14 @@ var option;
 
 let nbBlocks = 2
 let defaultFee=250
-let fees = [];
+let feesAIMD = [];
+let fees_eip1559 = [];
 let blockSize = []
 let currentLearningRate = 0
 let N = 2
 for (var i = 0; i < nbBlocks; i++) {
-  fees.push({value:[i,defaultFee]});
+  feesAIMD.push({value:[i,defaultFee]});
+  fees_eip1559.push({value:[i,defaultFee]});
   blockSize.push({value:[i,0]});
 }
 option = {
@@ -20,8 +22,9 @@ option = {
     trigger: 'axis',
     formatter: function (params) {
 			return 'height='+ params[0].data.value[0] +
-				' Block Size=' + params[1].data.value[1] +
-				' Gas Price=' + params[0].data.value[1]
+				' Block Size=' + params[2].data.value[1] +
+				' Gas Price AIMD=' + params[0].data.value[1] +
+				' Gas Price EIP1559=' + params[1].data.value[1]
     },
     axisPointer: {
       animation: false
@@ -42,13 +45,12 @@ option = {
 			max: 6,
     },
 	],
-	legend: {
-    data: ['currentBlockSize', 'fee'],
-  }
+
 };
 
 function reset() {
-	fees = [];
+	feesAIMD = [];
+	fees_eip1559 = []
 	blockSize = []
 	nbBlocks=0;
 	document.getElementById('baseGasPrice').value = 250;
@@ -78,9 +80,11 @@ function pauseResume() {
 }
 
 function computeFee(n) {
-	let lastFee = defaultFee
-	if (fees.length>0) {
-		lastFee = fees[fees.length-1].value[1]
+	let lastFeeAIMD = defaultFee
+	let lastFeeEIP1559 = defaultFee
+	if (feesAIMD.length>0) {
+		lastFeeAIMD = feesAIMD[feesAIMD.length-1].value[1]
+		lastFeeEIP1559= fees_eip1559[fees_eip1559.length-1].value[1] 
 	}
 	let baseGasPrice = parseFloat(document.getElementById('baseGasFee').value);
 	let alpha = parseFloat(document.getElementById('alpha').value);
@@ -126,7 +130,7 @@ function computeFee(n) {
 	console.log(`currentBlockSize = ${currentBlockSize}`)
 	console.log(`targetBlockSize = ${targetBlockSize}`)
 
-	let netGasDelta = 0;
+	var netGasDelta = 0;
 	let targetBlockUtilization = targetBlockSize/maxBlockSize;
 	for (var i = beginningOfWindow;
 		i < Math.min(beginningOfWindow + window, blockSize.length-1);
@@ -136,11 +140,21 @@ function computeFee(n) {
 		netGasDelta += currentBlockUtilization - targetBlockUtilization;
 	}
 	console.log(`netGasDelta = ${netGasDelta}`)
-	let F = lastFee * (1 + (newLearningRate * (currentBlockSize - targetBlockSize))/targetBlockSize ) + delta * netGasDelta;
-	console.log(`lastFee = ${lastFee}`)
-	console.log(`currentFee = ${F}`)
-	
-	return Math.max(F,baseGasPrice);
+	var AIMD_F = lastFeeAIMD * (1 + (newLearningRate * (currentBlockSize - targetBlockSize))/targetBlockSize ) + delta * netGasDelta;
+
+
+	var eip1559LearningRate = 0.125
+	var eip1559_F= lastFeeEIP1559 * (1 + (eip1559LearningRate * (currentBlockSize - targetBlockSize))/targetBlockSize );
+	console.log(`lastFee AIMD = ${lastFeeAIMD}`)
+	console.log(`lastFee EIP1559 = ${lastFeeEIP1559}`)
+	console.log(`currentFeeAIMD = ${AIMD_F}`)
+	console.log(`currentFeeEIP1559 = ${eip1559_F}`)
+
+
+	AIMD_F = Math.max(AIMD_F,baseGasPrice)
+	eip1559_F = Math.max(eip1559_F,baseGasPrice)
+
+	return [AIMD_F, eip1559_F];
 }
 
 setInterval(function () {
@@ -150,23 +164,36 @@ setInterval(function () {
 	nbBlocks++
 	n = parseInt(document.getElementById('currentBlockSize').value);
   // deposits.shift();
-  fees.push({ value:[ nbBlocks, computeFee(n) ] });
+  var computedFees = computeFee(n); 
+  feesAIMD.push({ value:[ nbBlocks, computedFees[0] ] });
+  fees_eip1559.push({ value:[ nbBlocks, computedFees[1] ] });
 	// numProposals.shift();
 	blockSize.push({ value:[ nbBlocks, n ] });
   myChart.setOption({
     series: [
-			{
+	{
+	  name: 'Fees AIMD',
     	  type: 'line',
-    	  data: fees,
+    	  data: feesAIMD,
+				symbolSize: 3,
+    	},
+	{
+	  name: 'Fees EIP1559',
+    	  type: 'line',
+    	  data: fees_eip1559,
 				symbolSize: 3,
     	},
     	{
+	  name: 'Block Size',
     	  type: 'line',
     	  data: blockSize,
 				yAxisIndex: 1,
 				symbolSize: 3,
     	}
-    ]
+    ],
+legend: {
+    data: ['Block Size', 'Fees AIMD', 'Fees EIP1559'],
+  },
   });
 }, 1000);
 
