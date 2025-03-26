@@ -12,7 +12,7 @@ let N = 2
 for (var i = 0; i < nbBlocks; i++) {
   feesAIMD.push({value:[i,defaultFee]});
   fees_eip1559.push({value:[i,defaultFee]});
-  blockSize.push({value:[i,0]});
+  blockSize.push({value:[i,20]});
 }
 option = {
   title: {
@@ -42,7 +42,7 @@ option = {
 		{
 			name: 'currentBlockSize',
 			min: 0,
-			max: 6,
+			max: 40,
     },
 	],
 
@@ -54,16 +54,16 @@ function reset() {
 	blockSize = []
 	nbBlocks=0;
 	document.getElementById('baseGasPrice').value = 250;
-	document.getElementById('currentBlockSize').value = 3;
-	document.getElementById('targetBlockSize').value = 3;
-	document.getElementById('maxBlockSize').value = 6;
-	document.getElementById('alpha').value = 0.05;
-	document.getElementById('beta').value = 0.025;
-	document.getElementById('window').value = 4;
-	document.getElementById('gamma').value = 1;
-	document.getElementById('maxLearningRate').value = 0.125;
-	document.getElementById('minLearningRate').value = 0.125;
-	document.getElementById('delta').value = 0.025;
+	document.getElementById('currentBlockSize').value = 20;
+	document.getElementById('targetBlockSize').value = 30;
+	document.getElementById('maxBlockSize').value = 60;
+	document.getElementById('alpha').value = 0.025;
+	document.getElementById('beta').value = 0.25;
+	document.getElementById('window').value = 8;
+	document.getElementById('gamma').value = 0.25;
+	document.getElementById('maxLearningRate').value = 0.5;
+	document.getElementById('minLearningRate').value = 0.01;
+	document.getElementById('delta').value = 0.0;
 
 }
 
