@@ -128,10 +128,12 @@ setInterval(function() {
     }
     myChart.setOption({
         series: [{
+            name: 'Deposit',
             type: 'line',
             data: deposits,
             symbolSize: 3,
         }, {
+            name: 'Num proposals',
             type: 'line',
             data: numProposals,
             yAxisIndex: 1,
