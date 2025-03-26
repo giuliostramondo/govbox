@@ -83,14 +83,14 @@ function computeDeposit(n) {
         let v = (Math.abs(n - N)) ** (1 / k);
         console.log(`k=${k} v=${v}`);
         percChange = 1 - alpha * v;
-    } else if (n > N) {
+    } else if (n >= N) {
         // increase only if there is new proposal(s) added since last computation
         if (n > lastn) {
             let alpha = parseFloat(document.getElementById('alphaUp').value);
             // if more than one proposal has been added in a single tick, 
             // handle that by powering the percentage change, but any proposals
             // added before N is reached should be ignored.
-            percChange = (1 + alpha) ** (n - Math.max(lastn, N));
+            percChange = (1 + alpha) ** (n - Math.max(lastn, N - 1));
         }
     }
     lastn = n;
