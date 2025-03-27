@@ -42,7 +42,7 @@ option = {
 		{
 			name: 'currentBlockSize',
 			min: 0,
-			max: 6,
+			max: 40,
     },
 	],
 
